@@ -620,7 +620,7 @@
     async function selectUserPlaylist(playlistId, playlistName) {
       document.getElementById('currentLoadedLabel').innerText = `📂 歌單：${playlistName} (載入曲目中...)`;
       loadPlaylistToFrame(playlistId);
-      await fetchTracksFromPlaylist(playlistId, playlistName, false);
+      await fetchTracksFromPlaylist(playlistId, playlistName, true);
     }
 
     // 🎲 核心需求：按下「隨機播放」按鈕 -> 拿取該歌單所有歌 -> 隨機打亂 -> 放到播放器播放
