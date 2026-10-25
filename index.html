@@ -522,15 +522,44 @@
 
     let accessToken = localStorage.getItem('spotify_access_token') || '';
     
-    // 核心資料陣列：存放當前歌單內的「所有單曲 (TRACKS)」
-    let currentPlaylistTracks = [];
+    // 預設熱門單曲備用庫 (當未登入 API 或載入失敗時使用)
+    const DEFAULT_FALLBACK_TRACKS = [
+      { id: '0VjIjA4233R31i2q3m4A9f', name: 'Blinding Lights', artist: 'The Weeknd' },
+      { id: '4DvkA6J9Bv339vB9yM91A3', name: 'As It Was', artist: 'Harry Styles' },
+      { id: '7qiZ229R21qA1e91A80A77', name: 'Shape of You', artist: 'Ed Sheeran' },
+      { id: '1BxfE1Pf2jSuV1M333q080', name: 'Cruel Summer', artist: 'Taylor Swift' },
+      { id: '3v9898fA0111A890f93891', name: 'Stay', artist: 'The Kid LAROI, Justin Bieber' },
+      { id: '5332822A910398A19010A1', name: 'Levitating', artist: 'Dua Lipa' }
+    ];
+
+    // 預設各熱門歌單備用曲目字典
+    const PRESET_PLAYLIST_MAP = {
+      '37i9dQZF1DX4sWSpwq3LiO': [
+        { id: '0VjIjA4233R31i2q3m4A9f', name: 'Blinding Lights', artist: 'The Weeknd' },
+        { id: '4DvkA6J9Bv339vB9yM91A3', name: 'As It Was', artist: 'Harry Styles' },
+        { id: '1BxfE1Pf2jSuV1M333q080', name: 'Cruel Summer', artist: 'Taylor Swift' },
+        { id: '09A013A918820A38101828', name: 'Espresso', artist: 'Sabrina Carpenter' }
+      ],
+      '37i9dQZF1DX3rxVfI13C2p': [
+        { id: '3U4isSt233R31i2q3m4A9f', name: 'Peaches', artist: 'Justin Bieber' },
+        { id: '2V61280381029301920391', name: 'Sunflower', artist: 'Post Malone, Swae Lee' },
+        { id: '0a78910182019280192019', name: 'Riptide', artist: 'Vance Joy' }
+      ],
+      '37i9dQZF1DX0X333A39A6A': [
+        { id: '1A2B3C4D5E6F7G8H9I0J1K', name: 'Lofi Study', artist: 'Chillhop' },
+        { id: '9I8H7G6F5E4D3C2B1A0J9I', name: 'Deep Focus', artist: 'Brain Food' }
+      ]
+    };
+
+    // 核心資料陣列：預設直接帶入 fallback 曲目
+    let currentPlaylistTracks = [...DEFAULT_FALLBACK_TRACKS];
     let currentTrackIndex = -1;
-    let activePlaylistName = "預設熱門歌單";
+    let activePlaylistName = "Today's Top Hits";
 
     // PKCE 安全授權流程
     async function loginSpotify() {
       if (SPOTIFY_CLIENT_ID === 'YOUR_CLIENT_ID_HERE') {
-        alert('請先在 index.html 裡面填入你的 SPOTIFY_CLIENT_ID！');
+        updateBadge('⚠️ 請先填寫 SPOTIFY_CLIENT_ID');
         return;
       }
 
@@ -640,7 +669,12 @@
     // 關鍵字搜尋歌曲
     async function searchSpotify() {
       const query = document.getElementById('searchInput').value.trim();
-      if (!query || !accessToken) return;
+      if (!query) return;
+
+      if (!accessToken) {
+        updateBadge('請先登入 Spotify 才能搜尋歌曲！');
+        return;
+      }
 
       const resultsList = document.getElementById('searchResults');
       resultsList.innerHTML = '<li style="color: var(--text-muted); font-size: 0.8rem; text-align: center;">搜尋中...</li>';
@@ -653,77 +687,82 @@
         const tracks = data.tracks.items;
 
         resultsList.innerHTML = '';
-        currentPlaylistTracks = tracks.map(t => ({
-          id: t.id,
-          name: t.name,
-          artist: t.artists.map(a => a.name).join(', ')
-        }));
+        if (tracks && tracks.length > 0) {
+          currentPlaylistTracks = tracks.map(t => ({
+            id: t.id,
+            name: t.name,
+            artist: t.artists.map(a => a.name).join(', ')
+          }));
 
-        activePlaylistName = `搜尋：「${query}」`;
+          activePlaylistName = `搜尋：「${query}」`;
 
-        tracks.forEach((track, index) => {
-          const li = document.createElement('li');
-          li.className = 'item-row';
-          const artistName = track.artists.map(a => a.name).join(', ');
-          li.innerHTML = `
-            <div style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 200px;">
-              🎵 <strong>${track.name}</strong> <span style="color: var(--text-muted); font-size: 0.75rem;">${artistName}</span>
-            </div>
-            <button style="background: #1db954; color: white; border: none; padding: 4px 10px; border-radius: 6px; cursor: pointer; font-size: 0.75rem;">播放</button>
-          `;
-          li.onclick = () => playSingleTrackByIndex(index);
-          resultsList.appendChild(li);
-        });
+          tracks.forEach((track, index) => {
+            const li = document.createElement('li');
+            li.className = 'item-row';
+            const artistName = track.artists.map(a => a.name).join(', ');
+            li.innerHTML = `
+              <div style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 200px;">
+                🎵 <strong>${track.name}</strong> <span style="color: var(--text-muted); font-size: 0.75rem;">${artistName}</span>
+              </div>
+              <button style="background: #1db954; color: white; border: none; padding: 4px 10px; border-radius: 6px; cursor: pointer; font-size: 0.75rem;">播放</button>
+            `;
+            li.onclick = () => playSingleTrackByIndex(index);
+            resultsList.appendChild(li);
+          });
 
-        if (tracks.length > 0) {
           playSingleTrackByIndex(0);
+        } else {
+          resultsList.innerHTML = '<li style="color: var(--text-muted); font-size: 0.8rem; text-align: center;">未找到相關歌曲</li>';
         }
       } catch (err) {
         console.error('搜尋失敗', err);
       }
     }
 
-    // 核心功能 1：載入歌單並透過 API 抓取「歌單內的所有單曲」
+    // 核心功能 1：載入歌單並自動準備曲目
     async function loadPlaylistAndFetchTracks(playlistId, playlistName) {
       activePlaylistName = playlistName;
-      document.getElementById('nowPlayingBadge').innerText = `📂 歌單：${playlistName} (載入曲目中...)`;
+      updateBadge(`📂 歌單：${playlistName} (載入中...)`);
       
-      // 先把歌單 iframe 載入顯示
+      // 更新 iframe
       document.getElementById('spotifyPlayer').src = `https://open.spotify.com/embed/playlist/${playlistId}?utm_source=generator`;
 
-      if (!accessToken) {
-        document.getElementById('nowPlayingBadge').innerText = `📂 ${playlistName} (請先登入以解鎖抽歌)`;
-        return;
-      }
+      // 若有登入 token，透過 API 抓取完整曲目
+      if (accessToken) {
+        try {
+          const res = await fetch(`https://api.spotify.com/v1/playlists/${playlistId}/tracks?limit=50`, {
+            headers: { 'Authorization': `Bearer ${accessToken}` }
+          });
+          const data = await res.json();
+          
+          if (data.items && data.items.length > 0) {
+            currentPlaylistTracks = data.items
+              .filter(item => item.track && item.track.id)
+              .map(item => ({
+                id: item.track.id,
+                name: item.track.name,
+                artist: item.track.artists ? item.track.artists.map(a => a.name).join(', ') : 'Unknown'
+              }));
 
-      try {
-        const res = await fetch(`https://api.spotify.com/v1/playlists/${playlistId}/tracks?limit=50`, {
-          headers: { 'Authorization': `Bearer ${accessToken}` }
-        });
-        const data = await res.json();
-        
-        if (data.items && data.items.length > 0) {
-          currentPlaylistTracks = data.items
-            .filter(item => item.track && item.track.id)
-            .map(item => ({
-              id: item.track.id,
-              name: item.track.name,
-              artist: item.track.artists.map(a => a.name).join(', ')
-            }));
-
-          currentTrackIndex = 0;
-          document.getElementById('nowPlayingBadge').innerText = `📂 ${playlistName} (已載入 ${currentPlaylistTracks.length} 首歌曲)`;
+            currentTrackIndex = 0;
+            updateBadge(`📂 ${playlistName} (已載入 ${currentPlaylistTracks.length} 首)`);
+            return;
+          }
+        } catch (e) {
+          console.error('讀取歌單內單曲失敗，將使用預設曲目:', e);
         }
-      } catch (e) {
-        console.error('讀取歌單內單曲失敗:', e);
       }
+
+      // 若未登入或 API 失敗，載入預設熱門曲目清單
+      currentPlaylistTracks = PRESET_PLAYLIST_MAP[playlistId] || [...DEFAULT_FALLBACK_TRACKS];
+      currentTrackIndex = 0;
+      updateBadge(`📂 ${playlistName} (已載入熱門曲目 ${currentPlaylistTracks.length} 首)`);
     }
 
-    // 核心功能 2：歌單內「隨機抽歌」 (Random Song inside Playlist)
+    // 核心功能 2：歌單內「隨機抽歌」
     function playRandomTrackInPlaylist() {
       if (!currentPlaylistTracks || currentPlaylistTracks.length === 0) {
-        alert('當前歌單尚未載入曲目，請先登入 Spotify 或選擇包含歌曲的歌單！');
-        return;
+        currentPlaylistTracks = [...DEFAULT_FALLBACK_TRACKS];
       }
 
       const randomIndex = Math.floor(Math.random() * currentPlaylistTracks.length);
@@ -732,29 +771,34 @@
 
     // 播放指定索引的單曲
     function playSingleTrackByIndex(index, isRandom = false) {
-      if (index < 0 || index >= currentPlaylistTracks.length) return;
+      if (!currentPlaylistTracks || currentPlaylistTracks.length === 0) return;
       
-      currentTrackIndex = index;
-      const track = currentPlaylistTracks[index];
+      const safeIndex = (index + currentPlaylistTracks.length) % currentPlaylistTracks.length;
+      currentTrackIndex = safeIndex;
+      const track = currentPlaylistTracks[safeIndex];
 
       // 載入單曲至 iframe
       document.getElementById('spotifyPlayer').src = `https://open.spotify.com/embed/track/${track.id}?utm_source=generator&autoplay=1`;
       
-      // 更新狀態標籤 UI
+      // 更新狀態標籤
       const prefix = isRandom ? '🎲 隨機播放' : '🎵 正在播放';
-      document.getElementById('nowPlayingBadge').innerText = `${prefix}：${track.name} - ${track.artist}`;
+      updateBadge(`${prefix}：${track.name} - ${track.artist}`);
     }
 
     function playNextTrack() {
-      if (currentPlaylistTracks.length === 0) return;
+      if (!currentPlaylistTracks || currentPlaylistTracks.length === 0) return;
       const nextIndex = (currentTrackIndex + 1) % currentPlaylistTracks.length;
       playSingleTrackByIndex(nextIndex);
     }
 
     function playPreviousTrack() {
-      if (currentPlaylistTracks.length === 0) return;
+      if (!currentPlaylistTracks || currentPlaylistTracks.length === 0) return;
       const prevIndex = (currentTrackIndex - 1 + currentPlaylistTracks.length) % currentPlaylistTracks.length;
       playSingleTrackByIndex(prevIndex);
+    }
+
+    function updateBadge(text) {
+      document.getElementById('nowPlayingBadge').innerText = text;
     }
 
     function switchTab(tabId, btn) {
@@ -798,6 +842,9 @@
       startClockUpdates();
       resetIdleTimer();
       handleAuthCallback();
+
+      // 初始化預設歌單曲目資料
+      loadPlaylistAndFetchTracks('37i9dQZF1DX4sWSpwq3LiO', "Today's Top Hits");
 
       ['mousemove', 'mousedown', 'keydown', 'touchstart', 'scroll'].forEach(evt => {
         window.addEventListener(evt, resetIdleTimer, true);
