@@ -11,6 +11,7 @@
       --card-bg: #ffffff;
       --accent: #3b82f6;
       --spotify-green: #1db954;
+      --spotify-purple: #8b5cf6;
       --text-main: #0f172a;
       --text-muted: #64748b;
       --border-color: #e2e8f0;
@@ -131,9 +132,40 @@
       background: #f8fafc; 
       border-radius: 8px; 
       font-size: 0.82rem; 
-      cursor: pointer; 
     }
-    .item-row:hover { background: #e2e8f0; }
+    .item-row:hover { background: #f1f5f9; }
+
+    .action-btn-group {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+
+    .btn-action-play {
+      background: var(--spotify-green); 
+      color: white; 
+      border: none; 
+      padding: 4px 10px; 
+      border-radius: 6px; 
+      cursor: pointer; 
+      font-size: 0.75rem;
+      font-weight: 600;
+      transition: background 0.2s;
+    }
+    .btn-action-play:hover { background: #16a34a; }
+
+    .btn-action-shuffle {
+      background: var(--spotify-purple); 
+      color: white; 
+      border: none; 
+      padding: 4px 10px; 
+      border-radius: 6px; 
+      cursor: pointer; 
+      font-size: 0.75rem;
+      font-weight: 600;
+      transition: background 0.2s;
+    }
+    .btn-action-shuffle:hover { background: #7c3aed; }
 
     .player-container {
       display: flex;
@@ -383,22 +415,22 @@
             <!-- 專屬控制按鈕列 (Custom Controller) -->
             <div class="custom-controller-card">
               <div class="controller-title">
-                <span>🎛️ 歌單內曲目控制器</span>
+                <span>🎛️ 佇列控制器</span>
                 <span id="currentLoadedLabel" style="color: #1db954;">📂 歌單：Today's Top Hits</span>
               </div>
               
               <div class="control-btn-group">
                 <button class="ctrl-btn ctrl-btn-secondary" onclick="playPrevTrack()">⏮️ 上一首</button>
-                <button class="ctrl-btn ctrl-btn-primary" onclick="playRandomTrackInPlaylist()">🔀 歌單內隨機抽歌</button>
+                <button class="ctrl-btn ctrl-btn-primary" onclick="shuffleCurrentQueue()">🔀 重新洗牌佇列</button>
                 <button class="ctrl-btn ctrl-btn-secondary" onclick="playNextTrack()">⏭️ 下一首</button>
               </div>
 
               <div style="display: flex; align-items: center; gap: 8px; margin-top: 2px;">
                 <span style="font-size: 0.72rem; color: #64748b;">熱門歌單：</span>
                 <div class="preset-chip-list">
-                  <span class="preset-chip" onclick="loadPresetPlaylist('37i9dQZF1DX4sWSpwq3LiO', 'Today\'s Top Hits')">🔥 Today's Top Hits</span>
-                  <span class="preset-chip" onclick="loadPresetPlaylist('37i9dQZF1DX4WY2323YO3B', 'Chill Hits')">☕ Chill Hits</span>
-                  <span class="preset-chip" onclick="loadPresetPlaylist('37i9dQZF1DX8NTLI29BXZa', '專注工作')">🎧 專注工作</span>
+                  <span class="preset-chip" onclick="selectUserPlaylist('37i9dQZF1DX4sWSpwq3LiO', 'Today\'s Top Hits')">🔥 Today's Top Hits</span>
+                  <span class="preset-chip" onclick="selectUserPlaylist('37i9dQZF1DX4WY2323YO3B', 'Chill Hits')">☕ Chill Hits</span>
+                  <span class="preset-chip" onclick="selectUserPlaylist('37i9dQZF1DX8NTLI29BXZa', '專注工作')">🎧 專注工作</span>
                 </div>
               </div>
             </div>
@@ -462,7 +494,7 @@
   </div>
 
   <script>
-    // 🔑 Spotify App 設定
+    // 🔑 Spotify App 設定 (以填入你的 Client ID)
     const SPOTIFY_CLIENT_ID = '8324dfb33f7d4fee83b146d1a1934381'; 
     const REDIRECT_URI = 'https://my-web.fktimchoi.workers.dev/index.html';
 
@@ -478,18 +510,12 @@
     let currentPlaylistTracks = [...DEFAULT_FALLBACK_TRACKS];
     let currentTrackIndex = 0;
 
-    // 🔐 登入流程（加入廣泛權限，確保可讀取任何私有與協作歌單）
+    // 🔐 登入流程
     async function loginSpotify() {
-      if (SPOTIFY_CLIENT_ID === 'YOUR_CLIENT_ID_HERE') {
-        alert('請先在 index.html 裡面填入你的 SPOTIFY_CLIENT_ID！');
-        return;
-      }
-
       const verifier = generateRandomString(128);
       const challenge = await generateCodeChallenge(verifier);
       localStorage.setItem('verifier', verifier);
 
-      // 擴充權限範圍：包含私有歌單與協作歌單讀取
       const scopes = 'user-read-private user-read-email playlist-read-private playlist-read-collaborative user-library-read';
       const params = new URLSearchParams({
         client_id: SPOTIFY_CLIENT_ID,
@@ -572,13 +598,14 @@
             const li = document.createElement('li');
             li.className = 'item-row';
             li.innerHTML = `
-              <div style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:180px;">
+              <div style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:160px;">
                 📂 <strong>${playlist.name}</strong>
               </div>
-              <button style="background:#1db954; color:white; border:none; padding:3px 8px; border-radius:6px; cursor:pointer; font-size:0.75rem;">選擇歌單</button>
+              <div class="action-btn-group">
+                <button class="btn-action-shuffle" onclick="shuffleAndPlayPlaylist('${playlist.id}', '${playlist.name.replace(/'/g, "\\'")}')">🔀 隨機播放</button>
+                <button class="btn-action-play" onclick="selectUserPlaylist('${playlist.id}', '${playlist.name.replace(/'/g, "\\'")}')">▶️ 順序播放</button>
+              </div>
             `;
-            // 點擊即刻載入整份歌單及其內部曲目陣列
-            li.onclick = () => selectUserPlaylist(playlist.id, playlist.name);
             listContainer.appendChild(li);
           });
         } else {
@@ -589,36 +616,55 @@
       }
     }
 
-    // 選擇個人歌單：同步更新 iframe 與載入內部所有單曲 ID
+    // 順序播放歌單
     async function selectUserPlaylist(playlistId, playlistName) {
       document.getElementById('currentLoadedLabel').innerText = `📂 歌單：${playlistName} (載入曲目中...)`;
       loadPlaylistToFrame(playlistId);
-      await fetchTracksFromPlaylist(playlistId, playlistName);
+      await fetchTracksFromPlaylist(playlistId, playlistName, false);
     }
 
-    // 透過 Spotify API 抓取歌單內的每一首歌曲 ID
-    async function fetchTracksFromPlaylist(playlistId, playlistName) {
+    // 🎲 核心需求：按下「隨機播放」按鈕 -> 拿取該歌單所有歌 -> 隨機打亂 -> 放到播放器播放
+    async function shuffleAndPlayPlaylist(playlistId, playlistName) {
+      document.getElementById('currentLoadedLabel').innerText = `🔀 隨機載入：${playlistName}...`;
+      await fetchTracksFromPlaylist(playlistId, playlistName, true);
+    }
+
+    // 透過 Spotify API 抓取歌單內的歌曲 ID，並可選擇性進行 Fisher-Yates 洗牌
+    async function fetchTracksFromPlaylist(playlistId, playlistName, shouldShuffle = false) {
       if (!accessToken) {
         document.getElementById('currentLoadedLabel').innerText = `📂 歌單：${playlistName}`;
+        if (shouldShuffle) playRandomTrackInPlaylist();
         return;
       }
 
       try {
-        const res = await fetch(`https://api.spotify.com/v1/playlists/${playlistId}/tracks?limit=50`, {
+        const res = await fetch(`https://api.spotify.com/v1/playlists/${playlistId}/tracks?limit=100`, {
           headers: { 'Authorization': `Bearer ${accessToken}` }
         });
         
         if (res.ok) {
           const data = await res.json();
           if (data.items && data.items.length > 0) {
-            const extractedTracks = data.items
+            let extractedTracks = data.items
               .filter(item => item.track && item.track.id)
               .map(item => item.track.id);
 
             if (extractedTracks.length > 0) {
+              if (shouldShuffle) {
+                // Fisher-Yates 演算法將歌單歌曲順序徹底打亂
+                extractedTracks = fisherYatesShuffle(extractedTracks);
+              }
+
               currentPlaylistTracks = extractedTracks;
               currentTrackIndex = 0;
-              document.getElementById('currentLoadedLabel').innerText = `📂 歌單：${playlistName} (${currentPlaylistTracks.length} 首)`;
+              
+              if (shouldShuffle) {
+                document.getElementById('currentLoadedLabel').innerText = `🔀 隨機歌單：${playlistName} (${currentPlaylistTracks.length} 首)`;
+                // 直接播放洗牌後的第一首歌
+                loadTrackToFrame(currentPlaylistTracks[0]);
+              } else {
+                document.getElementById('currentLoadedLabel').innerText = `📂 歌單：${playlistName} (${currentPlaylistTracks.length} 首)`;
+              }
               return;
             }
           }
@@ -627,22 +673,38 @@
         console.warn('API 抓取歌單曲目超時或無權限，啟動備用保護機制', err);
       }
 
-      // 若 API 未能抓到曲目（例如無權限），保留備用庫不報錯
       if (currentPlaylistTracks.length === 0) {
         currentPlaylistTracks = [...DEFAULT_FALLBACK_TRACKS];
       }
       document.getElementById('currentLoadedLabel').innerText = `📂 歌單：${playlistName}`;
+      if (shouldShuffle) playRandomTrackInPlaylist();
     }
 
-    // 🎲 核心功能：在歌單內隨機抽出一首歌播放
-    function playRandomTrackInPlaylist() {
-      if (currentPlaylistTracks.length === 0) {
-        currentPlaylistTracks = [...DEFAULT_FALLBACK_TRACKS];
+    // Fisher-Yates 洗牌演算法
+    function fisherYatesShuffle(array) {
+      const arr = [...array];
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
       }
+      return arr;
+    }
+
+    // 洗牌當前佇列
+    function shuffleCurrentQueue() {
+      if (currentPlaylistTracks.length > 0) {
+        currentPlaylistTracks = fisherYatesShuffle(currentPlaylistTracks);
+        currentTrackIndex = 0;
+        loadTrackToFrame(currentPlaylistTracks[0]);
+      }
+    }
+
+    // 隨機播放一首
+    function playRandomTrackInPlaylist() {
+      if (currentPlaylistTracks.length === 0) currentPlaylistTracks = [...DEFAULT_FALLBACK_TRACKS];
       const randomIndex = Math.floor(Math.random() * currentPlaylistTracks.length);
       currentTrackIndex = randomIndex;
-      const trackId = currentPlaylistTracks[randomIndex];
-      loadTrackToFrame(trackId);
+      loadTrackToFrame(currentPlaylistTracks[randomIndex]);
     }
 
     // ⏭️ 下一首
@@ -657,11 +719,6 @@
       if (currentPlaylistTracks.length === 0) return;
       currentTrackIndex = (currentTrackIndex - 1 + currentPlaylistTracks.length) % currentPlaylistTracks.length;
       loadTrackToFrame(currentPlaylistTracks[currentTrackIndex]);
-    }
-
-    // 載入預設熱門歌單
-    function loadPresetPlaylist(playlistId, name) {
-      selectUserPlaylist(playlistId, name);
     }
 
     // 搜尋功能
@@ -680,7 +737,7 @@
         const tracks = data.tracks.items;
 
         resultsList.innerHTML = '';
-        currentPlaylistTracks = tracks.map(t => t.id); // 將搜尋結果自動轉為當前可抽歌的佇列
+        currentPlaylistTracks = tracks.map(t => t.id);
         currentTrackIndex = 0;
         document.getElementById('currentLoadedLabel').innerText = `🔍 搜尋結果 (${tracks.length} 首)`;
 
@@ -692,17 +749,18 @@
             <div style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 190px;">
               🎵 <strong>${track.name}</strong> <span style="color: var(--text-muted); font-size: 0.75rem;">${artistName}</span>
             </div>
-            <button style="background: #1db954; color: white; border: none; padding: 3px 8px; border-radius: 6px; cursor: pointer; font-size: 0.75rem;">播放</button>
+            <button class="btn-action-play" onclick="playSearchTrack(${idx}, '${track.id}')">▶️ 播放</button>
           `;
-          li.onclick = () => {
-            currentTrackIndex = idx;
-            loadTrackToFrame(track.id);
-          };
           resultsList.appendChild(li);
         });
       } catch (err) {
         console.error('搜尋失敗', err);
       }
+    }
+
+    function playSearchTrack(idx, trackId) {
+      currentTrackIndex = idx;
+      loadTrackToFrame(trackId);
     }
 
     // 載入歌單/單曲至 iframe 播放器
