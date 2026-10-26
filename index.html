@@ -56,7 +56,6 @@
       justify-content: space-between; 
       align-items: center;
     }
-
     .btn-speech { 
       background: rgba(255, 255, 255, 0.1); 
       border: 1px solid rgba(255, 255, 255, 0.2); 
@@ -70,6 +69,7 @@
     }
     .btn-speech:hover { background: rgba(255, 255, 255, 0.2); }
 
+    /* FlixPatrol Netflix 卡片區塊 */
     .netflix-card {
       background: var(--card-bg);
       border-radius: var(--radius);
@@ -121,79 +121,46 @@
     }
     .btn-flixpatrol:hover { background: #334155; }
 
-    .top10-grid {
+    .top10-list {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
-      gap: 16px;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 12px;
       list-style: none;
     }
 
-    .top10-card {
-      position: relative;
-      background: #f8fafc;
-      border-radius: 14px;
-      overflow: hidden;
-      border: 1px solid var(--border-color);
+    .top10-item {
       display: flex;
-      flex-direction: column;
-      transition: transform 0.2s, box-shadow 0.2s;
+      align-items: center;
+      gap: 12px;
+      background: #f8fafc;
+      padding: 10px 14px;
+      border-radius: 12px;
+      border: 1px solid var(--border-color);
+      transition: transform 0.2s;
     }
-    .top10-card:hover {
-      transform: translateY(-4px);
-      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+    .top10-item:hover {
+      transform: translateY(-2px);
       border-color: var(--accent);
     }
 
-    .top10-poster-wrap {
-      position: relative;
-      width: 100%;
-      height: 230px;
-      background: #1e293b;
-    }
-
-    .top10-poster-wrap img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
-
-    .top10-rank-badge {
-      position: absolute;
-      top: 8px;
-      left: 8px;
-      background: rgba(229, 9, 20, 0.95);
-      color: white;
-      font-size: 0.95rem;
+    .top10-rank {
+      font-size: 1.2rem;
       font-weight: 800;
-      padding: 2px 10px;
-      border-radius: 8px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+      color: var(--netflix-red);
+      min-width: 24px;
+      text-align: center;
     }
 
-    .top10-info {
-      padding: 10px 12px;
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-    }
-
-    .top10-cn-title {
-      font-size: 0.88rem;
-      font-weight: 700;
+    .top10-name {
+      font-size: 0.85rem;
+      font-weight: 600;
       color: var(--text-main);
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
     }
 
-    .top10-en-title {
-      font-size: 0.72rem;
-      color: var(--text-muted);
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-
+    /* 4大功能卡片網格 */
     .grid-hub { 
       display: grid; 
       grid-template-columns: repeat(2, 1fr); 
@@ -260,6 +227,7 @@
     .cat-media-card { aspect-ratio: 1; border-radius: 14px; overflow: hidden; background: #e2e8f0; }
     .cat-media-card img { width: 100%; height: 100%; object-fit: cover; }
 
+    /* 閒置待機畫面 (全螢幕) */
     .ambient-overlay {
       position: absolute; 
       top: 0; 
@@ -288,6 +256,7 @@
 
   <div class="app-frame" id="appFrame">
 
+    <!-- 閒置待機畫面 -->
     <div class="ambient-overlay" id="ambientOverlay" onclick="wakeUp()">
       <div class="ambient-clock" id="ambientClock">12:00:00</div>
       <div class="ambient-date" id="ambientDate">2026年10月26日</div>
@@ -296,6 +265,7 @@
 
     <div class="container">
       
+      <!-- 管家頂部標題區 -->
       <div class="butler-header">
         <div>
           <h1 id="greetingText" style="font-size: 1.5rem; margin-bottom: 4px;">🤖 早安，主人</h1>
@@ -307,13 +277,15 @@
         </div>
       </div>
 
+      <!-- 主頁 View -->
       <div id="homePage" style="display: flex; flex-direction: column; gap: 20px;">
         
+        <!-- 🎬 FlixPatrol Netflix 香港 Top 10 熱門電影卡片 -->
         <div class="netflix-card">
           <div class="netflix-header">
             <div class="netflix-title">
               <span class="netflix-badge">NETFLIX</span>
-              <span id="netflixStatusText">🇭🇰 香港區 Top 10 熱門電影 (爬蟲實時更新中...)</span>
+              <span id="netflixStatusText">🇭🇰 香港區 Top 10 熱門電影 (載入中...)</span>
             </div>
             <a href="https://flixpatrol.com/top10/netflix/hong-kong/" target="_blank" class="btn-flixpatrol">
               🌐 開啟 FlixPatrol 原頁面 ↗
@@ -323,8 +295,17 @@
           <div class="top10-grid" id="netflixTop10List">
             <!-- JavaScript 爬蟲結果動態渲染 -->
           </div>
+            <a href="https://flixpatrol.com/top10/netflix/hong-kong/" target="_blank" class="btn-flixpatrol">
+              🌐 開啟 FlixPatrol 原頁面 ↗
+            </a>
+          </div>
+
+          <ul class="top10-list" id="netflixTop10List">
+            <!-- JavaScript 動態帶入 -->
+          </ul>
         </div>
 
+        <!-- 4大功能卡片 -->
         <div class="grid-hub">
           <div class="hub-card" onclick="showPage('taskPage')">
             <div class="card-icon">✅</div>
@@ -350,6 +331,7 @@
 
       </div>
 
+      <!-- 頁面 2: Task List -->
       <div id="taskPage" class="page-view">
         <div class="page-header">
           <h2>✅ 每日任務 Task List</h2>
@@ -362,15 +344,16 @@
         <ul class="task-list" id="taskListContainer"></ul>
       </div>
 
+      <!-- 頁面 3: 貓咪牆 -->
       <div id="catPage" class="page-view">
         <div class="page-header">
           <h2>🐱 貓咪照片 & 影片牆</h2>
           <button class="btn-back" onclick="showPage('homePage')">← 返回主頁</button>
         </div>
         <div class="cat-grid">
-          <div class="cat-media-card"><img src="https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?auto=format&fit=crop&w=400&q=80"></div>
-          <div class="cat-media-card"><img src="https://images.unsplash.com/photo-1573865526739-10659fec78a5?auto=format&fit=crop&w=400&q=80"></div>
-          <div class="cat-media-card"><img src="https://images.unsplash.com/photo-1533738363-b7f9aef128ce?auto=format&fit=crop&w=400&q=80"></div>
+          <div class="cat-media-card"><img src="https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?auto=format&fit=crop&w=400&q=80" alt="Cat"></div>
+          <div class="cat-media-card"><img src="https://images.unsplash.com/photo-1573865526739-10659fec78a5?auto=format&fit=crop&w=400&q=80" alt="Cat"></div>
+          <div class="cat-media-card"><img src="https://images.unsplash.com/photo-1533738363-b7f9aef128ce?auto=format&fit=crop&w=400&q=80" alt="Cat"></div>
         </div>
       </div>
 
@@ -381,6 +364,8 @@
     // 🌐 向 Cloudflare Worker 的爬蟲 API 呼叫獲取最新排名
     async function loadRealtimeNetflixTop10() {
       const statusText = document.getElementById('netflixStatusText');
+      const container = document.getElementById('netflixTop10List');
+
       try {
         const res = await fetch('/api/netflix-top10');
         if (res.ok) {
@@ -392,10 +377,26 @@
           }
         }
       } catch (err) {
-        console.warn('呼叫 API 失敗，使用備用資料', err);
+        console.warn('呼叫 API 失敗:', err);
       }
-      statusText.innerText = '🇭🇰 香港區 Top 10 熱門電影 (即時排行)';
-      renderNetflixTop10(getFallbackTop10());
+
+      // 若抓取失敗或無資料，顯示錯誤提示訊息而非 hardcode 數據
+      showFetchError();
+    }
+
+    function showFetchError() {
+      const statusText = document.getElementById('netflixStatusText');
+      const container = document.getElementById('netflixTop10List');
+      
+      statusText.innerText = '🇭🇰 香港區 Top 10 熱門電影';
+      container.innerHTML = `
+        <div style="grid-column: 1 / -1; padding: 40px 20px; text-align: center; background: #fef2f2; border: 1px dashed #fca5a5; border-radius: 12px; color: #dc2626;">
+          <div style="font-size: 1.8rem; margin-bottom: 8px;">⚠️</div>
+          <div style="font-weight: 700; font-size: 1.1rem; margin-bottom: 4px;">資料未能下載成功</div>
+          <div style="font-size: 0.85rem; color: #991b1b;">無法從 FlixPatrol 取得最新的 Netflix 香港區 Top 10 熱門電影數據。</div>
+          <button onclick="loadRealtimeNetflixTop10()" style="margin-top: 12px; background: #dc2626; color: white; border: none; padding: 6px 16px; border-radius: 8px; font-weight: 600; cursor: pointer;">重新嘗試</button>
+        </div>
+      `;
     }
 
     function renderNetflixTop10(movies) {
@@ -419,27 +420,13 @@
       });
     }
 
-    function getFallbackTop10() {
-      return [
-        { rank: 1, titleCn: '鬼玩人：復活', titleEn: 'Evil Dead Burn', poster: 'https://m.media-amazon.com/images/M/MV5BMmZiN2VlNWYtODY2MC00OTA5LThjMGYtN2ViMTM4ZmJjMDAyXkEyXkFqcGc@._V1_SX300.jpg' },
-        { rank: 2, titleCn: '盜墓者羅拉', titleEn: 'Tomb Raider', poster: 'https://m.media-amazon.com/images/M/MV5BOTY4NDcyZGEtMTdhYi00NDhiLThlMjEtZThiMGEwZTAzMDAzXkEyXkFqcGc@._V1_SX300.jpg' },
-        { rank: 3, titleCn: '動物大劫案', titleEn: 'Animals', poster: 'https://m.media-amazon.com/images/M/MV5BMjA3NzMyMzU1MV5BMl5BanBnXkFtZTgwMjc4NTU5NDM@._V1_SX300.jpg' },
-        { rank: 4, titleCn: '金剛：骷髏島', titleEn: 'Kong: Skull Island', poster: 'https://m.media-amazon.com/images/M/MV5BMTUwMzI5ODEwNF5BMl5BanBnXkFtZTgwNjAzNjI2MDI@._V1_SX300.jpg' },
-        { rank: 5, titleCn: '切勿關燈', titleEn: 'Lights Out', poster: 'https://m.media-amazon.com/images/M/MV5BNzQ2NTA3MjgyM15BMl5BanBnXkFtZTgwMjA5MzY4ODE@._V1_SX300.jpg' },
-        { rank: 6, titleCn: '功夫', titleEn: 'Kung Fu Hustle', poster: 'https://m.media-amazon.com/images/M/MV5BMTkwNzc1NjM3OF5BMl5BanBnXkFtZTcwNTI2Njg3NA@@._V1_SX300.jpg' },
-        { rank: 7, titleCn: '恐怖蠟像館', titleEn: 'House of Wax', poster: 'https://m.media-amazon.com/images/M/MV5BMTM3NzA4NDI4MV5BMl5BanBnXkFtZTcwOTEwMTAzMQ@@._V1_SX300.jpg' },
-        { rank: 8, titleCn: '國定殺戮日', titleEn: 'The Purge', poster: 'https://m.media-amazon.com/images/M/MV5BMTQwMTA5MzI1MF5BMl5BanBnXkFtZTcwMzA5MTA3OQ@@._V1_SX300.jpg' },
-        { rank: 9, titleCn: '哥斯拉對金剛', titleEn: 'Godzilla vs. Kong', poster: 'https://m.media-amazon.com/images/M/MV5BZmYzMzU4NjctNDI0Mi00MGExLWI3ZDQtYzQzYThjYjkyNmJhXkEyXkFqcGc@._V1_SX300.jpg' },
-        { rank: 10, titleCn: '無限殺戮日', titleEn: 'The Forever Purge', poster: 'https://m.media-amazon.com/images/M/MV5BMjg4NGRjM2ItY2M2Yi00OTI5LTk0NDgtY2RjZGY0NmI5NzJhXkEyXkFqcGc@._V1_SX300.jpg' }
-      ];
-    }
-
     let tasks = JSON.parse(localStorage.getItem('butler_tasks')) || [
       { id: 1, text: '今日運動打卡 🏋️', completed: false },
       { id: 2, text: '練琴 30 分鐘 🎹', completed: false },
       { id: 3, text: '閱讀 20 頁書 📚', completed: false }
     ];
 
+    // 閒置 10 分鐘自動進入待機時鐘
     const IDLE_TIMEOUT = 10 * 60 * 1000;
     let idleTimer;
 
@@ -447,7 +434,7 @@
       updateGreeting();
       renderTasks();
       updateButlerSummary();
-      loadRealtimeNetflixTop10();
+      renderNetflixTop10();
       startClockUpdates();
       resetIdleTimer();
 
@@ -456,6 +443,7 @@
       });
     }
 
+    // 閒置計時與待機畫面控制
     function resetIdleTimer() {
       clearTimeout(idleTimer);
       idleTimer = setTimeout(() => {
@@ -466,6 +454,7 @@
     function triggerIdleNow() { document.getElementById('ambientOverlay').classList.add('active'); }
     function wakeUp() { document.getElementById('ambientOverlay').classList.remove('active'); resetIdleTimer(); }
 
+    // 時鐘更新
     function startClockUpdates() {
       setInterval(() => {
         const now = new Date();
@@ -474,6 +463,7 @@
       }, 1000);
     }
 
+    // 問候語更新
     function updateGreeting() {
       const hour = new Date().getHours();
       let greeting = '早安，主人 ☀️';
@@ -482,12 +472,14 @@
       document.getElementById('greetingText').innerText = greeting;
     }
 
+    // 頁面切換控制
     function showPage(pageId) {
       document.getElementById('homePage').style.display = pageId === 'homePage' ? 'flex' : 'none';
       document.getElementById('taskPage').classList.toggle('active', pageId === 'taskPage');
       document.getElementById('catPage').classList.toggle('active', pageId === 'catPage');
     }
 
+    // Task List 任務管理
     function renderTasks() {
       const container = document.getElementById('taskListContainer');
       container.innerHTML = '';
@@ -522,6 +514,7 @@
       document.getElementById('butlerSummary').innerText = `今日習慣完成進度：${completed} / ${tasks.length} 項。`;
     }
 
+    // 語音簡報 (Web Speech API)
     function speakButlerSummary() {
       const text = document.getElementById('greetingText').innerText + '。' + document.getElementById('butlerSummary').innerText;
       const utterance = new SpeechSynthesisUtterance(text);
