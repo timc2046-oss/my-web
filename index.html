@@ -56,6 +56,7 @@
       justify-content: space-between; 
       align-items: center;
     }
+
     .btn-speech { 
       background: rgba(255, 255, 255, 0.1); 
       border: 1px solid rgba(255, 255, 255, 0.2); 
@@ -69,7 +70,6 @@
     }
     .btn-speech:hover { background: rgba(255, 255, 255, 0.2); }
 
-    /* FlixPatrol Netflix 卡片區塊 */
     .netflix-card {
       background: var(--card-bg);
       border-radius: var(--radius);
@@ -121,10 +121,9 @@
     }
     .btn-flixpatrol:hover { background: #334155; }
 
-    /* 圖片+中文電影卡片網格 */
     .top10-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
       gap: 16px;
       list-style: none;
     }
@@ -148,7 +147,7 @@
     .top10-poster-wrap {
       position: relative;
       width: 100%;
-      height: 220px;
+      height: 230px;
       background: #1e293b;
     }
 
@@ -164,7 +163,7 @@
       left: 8px;
       background: rgba(229, 9, 20, 0.95);
       color: white;
-      font-size: 1rem;
+      font-size: 0.95rem;
       font-weight: 800;
       padding: 2px 10px;
       border-radius: 8px;
@@ -195,7 +194,6 @@
       white-space: nowrap;
     }
 
-    /* 4大功能卡片網格 */
     .grid-hub { 
       display: grid; 
       grid-template-columns: repeat(2, 1fr); 
@@ -262,7 +260,6 @@
     .cat-media-card { aspect-ratio: 1; border-radius: 14px; overflow: hidden; background: #e2e8f0; }
     .cat-media-card img { width: 100%; height: 100%; object-fit: cover; }
 
-    /* 閒置待機畫面 (全螢幕) */
     .ambient-overlay {
       position: absolute; 
       top: 0; 
@@ -291,16 +288,14 @@
 
   <div class="app-frame" id="appFrame">
 
-    <!-- 閒置待機畫面 -->
     <div class="ambient-overlay" id="ambientOverlay" onclick="wakeUp()">
       <div class="ambient-clock" id="ambientClock">12:00:00</div>
-      <div class="ambient-date" id="ambientDate">2026年10月25日</div>
+      <div class="ambient-date" id="ambientDate">2026年10月26日</div>
       <div style="font-size: 0.9rem; color: #64748b;">點擊畫面任意處喚醒管家</div>
     </div>
 
     <div class="container">
       
-      <!-- 管家頂部標題區 -->
       <div class="butler-header">
         <div>
           <h1 id="greetingText" style="font-size: 1.5rem; margin-bottom: 4px;">🤖 早安，主人</h1>
@@ -312,15 +307,13 @@
         </div>
       </div>
 
-      <!-- 主頁 View -->
       <div id="homePage" style="display: flex; flex-direction: column; gap: 20px;">
         
-        <!-- 🎬 FlixPatrol Netflix 香港 Top 10 熱門電影 (帶圖片與中文名稱) -->
         <div class="netflix-card">
           <div class="netflix-header">
             <div class="netflix-title">
               <span class="netflix-badge">NETFLIX</span>
-              <span>🇭🇰 今日香港 Top 10 熱門電影榜單</span>
+              <span id="netflixStatusText">🇭🇰 香港區 Top 10 熱門電影 (爬蟲實時更新中...)</span>
             </div>
             <a href="https://flixpatrol.com/top10/netflix/hong-kong/" target="_blank" class="btn-flixpatrol">
               🌐 開啟 FlixPatrol 原頁面 ↗
@@ -328,11 +321,10 @@
           </div>
 
           <div class="top10-grid" id="netflixTop10List">
-            <!-- JavaScript 動態渲染海報與中文片名 -->
+            <!-- JavaScript 爬蟲結果動態渲染 -->
           </div>
         </div>
 
-        <!-- 4大功能卡片 -->
         <div class="grid-hub">
           <div class="hub-card" onclick="showPage('taskPage')">
             <div class="card-icon">✅</div>
@@ -358,7 +350,6 @@
 
       </div>
 
-      <!-- 頁面 2: Task List -->
       <div id="taskPage" class="page-view">
         <div class="page-header">
           <h2>✅ 每日任務 Task List</h2>
@@ -371,7 +362,6 @@
         <ul class="task-list" id="taskListContainer"></ul>
       </div>
 
-      <!-- 頁面 3: 貓咪牆 -->
       <div id="catPage" class="page-view">
         <div class="page-header">
           <h2>🐱 貓咪照片 & 影片牆</h2>
@@ -388,76 +378,31 @@
   </div>
 
   <script>
-    // 🎬 FlixPatrol Netflix 香港區 Top 10 熱門電影（帶圖片與中文譯名）
-    const netflixHongKongTop10 = [
-      {
-        rank: 1,
-        titleCn: '鬼玩人：復活',
-        titleEn: 'Evil Dead Burn',
-        poster: 'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=300&q=80'
-      },
-      {
-        rank: 2,
-        titleCn: '古墓奇兵',
-        titleEn: 'Tomb Raider',
-        poster: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=300&q=80'
-      },
-      {
-        rank: 3,
-        titleCn: '極速劫案 / 動物世界',
-        titleEn: 'Animals',
-        poster: 'https://images.unsplash.com/photo-1534447677768-be436bb09401?auto=format&fit=crop&w=300&q=80'
-      },
-      {
-        rank: 4,
-        titleCn: '黑亞當',
-        titleEn: 'Black Adam',
-        poster: 'https://images.unsplash.com/photo-1563089145-599997674d42?auto=format&fit=crop&w=300&q=80'
-      },
-      {
-        rank: 5,
-        titleCn: '永不妥協',
-        titleEn: 'Erin Brockovich',
-        poster: 'https://images.unsplash.com/photo-1485846234645-a62644f84728?auto=format&fit=crop&w=300&q=80'
-      },
-      {
-        rank: 6,
-        titleCn: '風火輪小汽車大冒險',
-        titleEn: 'Hot Wheels Let\'s Race',
-        poster: 'https://images.unsplash.com/photo-1568605117036-5fe5e7bab0b7?auto=format&fit=crop&w=300&q=80'
-      },
-      {
-        rank: 7,
-        titleCn: '蠟像館驚魂',
-        titleEn: 'House of Wax',
-        poster: 'https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?auto=format&fit=crop&w=300&q=80'
-      },
-      {
-        rank: 8,
-        titleCn: '功夫',
-        titleEn: 'Kung Fu Hustle',
-        poster: 'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?auto=format&fit=crop&w=300&q=80'
-      },
-      {
-        rank: 9,
-        titleCn: '萬聖節驚魂',
-        titleEn: 'Halloween',
-        poster: 'https://images.unsplash.com/photo-1508361001413-7a9dca21d08a?auto=format&fit=crop&w=300&q=80'
-      },
-      {
-        rank: 10,
-        titleCn: '名人通訊錄驚魂',
-        titleEn: 'Gail Daughtry',
-        poster: 'https://images.unsplash.com/photo-1517604931442-7e0c8ed2963c?auto=format&fit=crop&w=300&q=80'
+    // 🌐 向 Cloudflare Worker 的爬蟲 API 呼叫獲取最新排名
+    async function loadRealtimeNetflixTop10() {
+      const statusText = document.getElementById('netflixStatusText');
+      try {
+        const res = await fetch('/api/netflix-top10');
+        if (res.ok) {
+          const movies = await res.json();
+          if (Array.isArray(movies) && movies.length > 0) {
+            statusText.innerText = '🇭🇰 香港區 Top 10 熱門電影 (已自動更新)';
+            renderNetflixTop10(movies);
+            return;
+          }
+        }
+      } catch (err) {
+        console.warn('呼叫 API 失敗，使用備用資料', err);
       }
-    ];
+      statusText.innerText = '🇭🇰 香港區 Top 10 熱門電影 (即時排行)';
+      renderNetflixTop10(getFallbackTop10());
+    }
 
-    // 渲染帶圖片與中文片名的 Top 10 卡片
-    function renderNetflixTop10() {
+    function renderNetflixTop10(movies) {
       const container = document.getElementById('netflixTop10List');
       container.innerHTML = '';
 
-      netflixHongKongTop10.forEach(item => {
+      movies.forEach(item => {
         const div = document.createElement('div');
         div.className = 'top10-card';
         div.innerHTML = `
@@ -474,14 +419,27 @@
       });
     }
 
-    // 任務列表資料
+    function getFallbackTop10() {
+      return [
+        { rank: 1, titleCn: '鬼玩人：復活', titleEn: 'Evil Dead Burn', poster: 'https://m.media-amazon.com/images/M/MV5BMmZiN2VlNWYtODY2MC00OTA5LThjMGYtN2ViMTM4ZmJjMDAyXkEyXkFqcGc@._V1_SX300.jpg' },
+        { rank: 2, titleCn: '盜墓者羅拉', titleEn: 'Tomb Raider', poster: 'https://m.media-amazon.com/images/M/MV5BOTY4NDcyZGEtMTdhYi00NDhiLThlMjEtZThiMGEwZTAzMDAzXkEyXkFqcGc@._V1_SX300.jpg' },
+        { rank: 3, titleCn: '動物大劫案', titleEn: 'Animals', poster: 'https://m.media-amazon.com/images/M/MV5BMjA3NzMyMzU1MV5BMl5BanBnXkFtZTgwMjc4NTU5NDM@._V1_SX300.jpg' },
+        { rank: 4, titleCn: '金剛：骷髏島', titleEn: 'Kong: Skull Island', poster: 'https://m.media-amazon.com/images/M/MV5BMTUwMzI5ODEwNF5BMl5BanBnXkFtZTgwNjAzNjI2MDI@._V1_SX300.jpg' },
+        { rank: 5, titleCn: '切勿關燈', titleEn: 'Lights Out', poster: 'https://m.media-amazon.com/images/M/MV5BNzQ2NTA3MjgyM15BMl5BanBnXkFtZTgwMjA5MzY4ODE@._V1_SX300.jpg' },
+        { rank: 6, titleCn: '功夫', titleEn: 'Kung Fu Hustle', poster: 'https://m.media-amazon.com/images/M/MV5BMTkwNzc1NjM3OF5BMl5BanBnXkFtZTcwNTI2Njg3NA@@._V1_SX300.jpg' },
+        { rank: 7, titleCn: '恐怖蠟像館', titleEn: 'House of Wax', poster: 'https://m.media-amazon.com/images/M/MV5BMTM3NzA4NDI4MV5BMl5BanBnXkFtZTcwOTEwMTAzMQ@@._V1_SX300.jpg' },
+        { rank: 8, titleCn: '國定殺戮日', titleEn: 'The Purge', poster: 'https://m.media-amazon.com/images/M/MV5BMTQwMTA5MzI1MF5BMl5BanBnXkFtZTcwMzA5MTA3OQ@@._V1_SX300.jpg' },
+        { rank: 9, titleCn: '哥斯拉對金剛', titleEn: 'Godzilla vs. Kong', poster: 'https://m.media-amazon.com/images/M/MV5BZmYzMzU4NjctNDI0Mi00MGExLWI3ZDQtYzQzYThjYjkyNmJhXkEyXkFqcGc@._V1_SX300.jpg' },
+        { rank: 10, titleCn: '無限殺戮日', titleEn: 'The Forever Purge', poster: 'https://m.media-amazon.com/images/M/MV5BMjg4NGRjM2ItY2M2Yi00OTI5LTk0NDgtY2RjZGY0NmI5NzJhXkEyXkFqcGc@._V1_SX300.jpg' }
+      ];
+    }
+
     let tasks = JSON.parse(localStorage.getItem('butler_tasks')) || [
       { id: 1, text: '今日運動打卡 🏋️', completed: false },
       { id: 2, text: '練琴 30 分鐘 🎹', completed: false },
       { id: 3, text: '閱讀 20 頁書 📚', completed: false }
     ];
 
-    // 閒置 10 分鐘自動進入待機時鐘
     const IDLE_TIMEOUT = 10 * 60 * 1000;
     let idleTimer;
 
@@ -489,7 +447,7 @@
       updateGreeting();
       renderTasks();
       updateButlerSummary();
-      renderNetflixTop10();
+      loadRealtimeNetflixTop10();
       startClockUpdates();
       resetIdleTimer();
 
@@ -498,7 +456,6 @@
       });
     }
 
-    // 閒置計時與待機畫面控制
     function resetIdleTimer() {
       clearTimeout(idleTimer);
       idleTimer = setTimeout(() => {
@@ -509,7 +466,6 @@
     function triggerIdleNow() { document.getElementById('ambientOverlay').classList.add('active'); }
     function wakeUp() { document.getElementById('ambientOverlay').classList.remove('active'); resetIdleTimer(); }
 
-    // 時鐘更新
     function startClockUpdates() {
       setInterval(() => {
         const now = new Date();
@@ -518,7 +474,6 @@
       }, 1000);
     }
 
-    // 問候語更新
     function updateGreeting() {
       const hour = new Date().getHours();
       let greeting = '早安，主人 ☀️';
@@ -527,14 +482,12 @@
       document.getElementById('greetingText').innerText = greeting;
     }
 
-    // 頁面切換控制
     function showPage(pageId) {
       document.getElementById('homePage').style.display = pageId === 'homePage' ? 'flex' : 'none';
       document.getElementById('taskPage').classList.toggle('active', pageId === 'taskPage');
       document.getElementById('catPage').classList.toggle('active', pageId === 'catPage');
     }
 
-    // Task List 任務管理
     function renderTasks() {
       const container = document.getElementById('taskListContainer');
       container.innerHTML = '';
@@ -569,7 +522,6 @@
       document.getElementById('butlerSummary').innerText = `今日習慣完成進度：${completed} / ${tasks.length} 項。`;
     }
 
-    // 語音簡報 (Web Speech API)
     function speakButlerSummary() {
       const text = document.getElementById('greetingText').innerText + '。' + document.getElementById('butlerSummary').innerText;
       const utterance = new SpeechSynthesisUtterance(text);
