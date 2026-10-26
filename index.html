@@ -10,7 +10,6 @@
       --bg-primary: #f8fafc;
       --card-bg: #ffffff;
       --accent: #3b82f6;
-      --netflix-red: #e50914;
       --text-main: #0f172a;
       --text-muted: #64748b;
       --border-color: #e2e8f0;
@@ -56,6 +55,7 @@
       justify-content: space-between; 
       align-items: center;
     }
+    
     .btn-speech { 
       background: rgba(255, 255, 255, 0.1); 
       border: 1px solid rgba(255, 255, 255, 0.2); 
@@ -68,97 +68,6 @@
       transition: background 0.2s;
     }
     .btn-speech:hover { background: rgba(255, 255, 255, 0.2); }
-
-    /* FlixPatrol Netflix 卡片區塊 */
-    .netflix-card {
-      background: var(--card-bg);
-      border-radius: var(--radius);
-      padding: 24px;
-      box-shadow: var(--shadow);
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-    }
-
-    .netflix-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      border-bottom: 2px solid #f1f5f9;
-      padding-bottom: 12px;
-    }
-
-    .netflix-title {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      font-size: 1.1rem;
-      font-weight: 700;
-    }
-
-    .netflix-badge {
-      background: var(--netflix-red);
-      color: white;
-      padding: 4px 10px;
-      border-radius: 6px;
-      font-size: 0.75rem;
-      font-weight: 700;
-      letter-spacing: 0.5px;
-    }
-
-    .btn-flixpatrol {
-      background: #1e293b;
-      color: #ffffff;
-      text-decoration: none;
-      padding: 8px 14px;
-      border-radius: 10px;
-      font-size: 0.8rem;
-      font-weight: 600;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      transition: background 0.2s;
-    }
-    .btn-flixpatrol:hover { background: #334155; }
-
-    .top10-list {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-      gap: 12px;
-      list-style: none;
-    }
-
-    .top10-item {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      background: #f8fafc;
-      padding: 10px 14px;
-      border-radius: 12px;
-      border: 1px solid var(--border-color);
-      transition: transform 0.2s;
-    }
-    .top10-item:hover {
-      transform: translateY(-2px);
-      border-color: var(--accent);
-    }
-
-    .top10-rank {
-      font-size: 1.2rem;
-      font-weight: 800;
-      color: var(--netflix-red);
-      min-width: 24px;
-      text-align: center;
-    }
-
-    .top10-name {
-      font-size: 0.85rem;
-      font-weight: 600;
-      color: var(--text-main);
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
 
     /* 4大功能卡片網格 */
     .grid-hub { 
@@ -278,33 +187,7 @@
       </div>
 
       <!-- 主頁 View -->
-      <div id="homePage" style="display: flex; flex-direction: column; gap: 20px;">
-        
-        <!-- 🎬 FlixPatrol Netflix 香港 Top 10 熱門電影卡片 -->
-        <div class="netflix-card">
-          <div class="netflix-header">
-            <div class="netflix-title">
-              <span class="netflix-badge">NETFLIX</span>
-              <span id="netflixStatusText">🇭🇰 香港區 Top 10 熱門電影 (載入中...)</span>
-            </div>
-            <a href="https://flixpatrol.com/top10/netflix/hong-kong/" target="_blank" class="btn-flixpatrol">
-              🌐 開啟 FlixPatrol 原頁面 ↗
-            </a>
-          </div>
-
-          <div class="top10-grid" id="netflixTop10List">
-            <!-- JavaScript 爬蟲結果動態渲染 -->
-          </div>
-            <a href="https://flixpatrol.com/top10/netflix/hong-kong/" target="_blank" class="btn-flixpatrol">
-              🌐 開啟 FlixPatrol 原頁面 ↗
-            </a>
-          </div>
-
-          <ul class="top10-list" id="netflixTop10List">
-            <!-- JavaScript 動態帶入 -->
-          </ul>
-        </div>
-
+      <div id="homePage">
         <!-- 4大功能卡片 -->
         <div class="grid-hub">
           <div class="hub-card" onclick="showPage('taskPage')">
@@ -328,7 +211,6 @@
             <p>（預留模組）</p>
           </div>
         </div>
-
       </div>
 
       <!-- 頁面 2: Task List -->
@@ -351,9 +233,9 @@
           <button class="btn-back" onclick="showPage('homePage')">← 返回主頁</button>
         </div>
         <div class="cat-grid">
-          <div class="cat-media-card"><img src="https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?auto=format&fit=crop&w=400&q=80" alt="Cat"></div>
-          <div class="cat-media-card"><img src="https://images.unsplash.com/photo-1573865526739-10659fec78a5?auto=format&fit=crop&w=400&q=80" alt="Cat"></div>
-          <div class="cat-media-card"><img src="https://images.unsplash.com/photo-1533738363-b7f9aef128ce?auto=format&fit=crop&w=400&q=80" alt="Cat"></div>
+          <div class="cat-media-card"><img src="https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?auto=format&fit=crop&w=400&q=80"></div>
+          <div class="cat-media-card"><img src="https://images.unsplash.com/photo-1573865526739-10659fec78a5?auto=format&fit=crop&w=400&q=80"></div>
+          <div class="cat-media-card"><img src="https://images.unsplash.com/photo-1533738363-b7f9aef128ce?auto=format&fit=crop&w=400&q=80"></div>
         </div>
       </div>
 
@@ -361,65 +243,7 @@
   </div>
 
   <script>
-    // 🌐 向 Cloudflare Worker 的爬蟲 API 呼叫獲取最新排名
-    async function loadRealtimeNetflixTop10() {
-      const statusText = document.getElementById('netflixStatusText');
-      const container = document.getElementById('netflixTop10List');
-
-      try {
-        const res = await fetch('/api/netflix-top10');
-        if (res.ok) {
-          const movies = await res.json();
-          if (Array.isArray(movies) && movies.length > 0) {
-            statusText.innerText = '🇭🇰 香港區 Top 10 熱門電影 (已自動更新)';
-            renderNetflixTop10(movies);
-            return;
-          }
-        }
-      } catch (err) {
-        console.warn('呼叫 API 失敗:', err);
-      }
-
-      // 若抓取失敗或無資料，顯示錯誤提示訊息而非 hardcode 數據
-      showFetchError();
-    }
-
-    function showFetchError() {
-      const statusText = document.getElementById('netflixStatusText');
-      const container = document.getElementById('netflixTop10List');
-      
-      statusText.innerText = '🇭🇰 香港區 Top 10 熱門電影';
-      container.innerHTML = `
-        <div style="grid-column: 1 / -1; padding: 40px 20px; text-align: center; background: #fef2f2; border: 1px dashed #fca5a5; border-radius: 12px; color: #dc2626;">
-          <div style="font-size: 1.8rem; margin-bottom: 8px;">⚠️</div>
-          <div style="font-weight: 700; font-size: 1.1rem; margin-bottom: 4px;">資料未能下載成功</div>
-          <div style="font-size: 0.85rem; color: #991b1b;">無法從 FlixPatrol 取得最新的 Netflix 香港區 Top 10 熱門電影數據。</div>
-          <button onclick="loadRealtimeNetflixTop10()" style="margin-top: 12px; background: #dc2626; color: white; border: none; padding: 6px 16px; border-radius: 8px; font-weight: 600; cursor: pointer;">重新嘗試</button>
-        </div>
-      `;
-    }
-
-    function renderNetflixTop10(movies) {
-      const container = document.getElementById('netflixTop10List');
-      container.innerHTML = '';
-
-      movies.forEach(item => {
-        const div = document.createElement('div');
-        div.className = 'top10-card';
-        div.innerHTML = `
-          <div class="top10-poster-wrap">
-            <span class="top10-rank-badge">NO.${item.rank}</span>
-            <img src="${item.poster}" alt="${item.titleCn}" loading="lazy">
-          </div>
-          <div class="top10-info">
-            <div class="top10-cn-title" title="${item.titleCn}">${item.titleCn}</div>
-            <div class="top10-en-title" title="${item.titleEn}">${item.titleEn}</div>
-          </div>
-        `;
-        container.appendChild(div);
-      });
-    }
-
+    // 任務列表資料
     let tasks = JSON.parse(localStorage.getItem('butler_tasks')) || [
       { id: 1, text: '今日運動打卡 🏋️', completed: false },
       { id: 2, text: '練琴 30 分鐘 🎹', completed: false },
@@ -434,7 +258,6 @@
       updateGreeting();
       renderTasks();
       updateButlerSummary();
-      renderNetflixTop10();
       startClockUpdates();
       resetIdleTimer();
 
@@ -474,7 +297,7 @@
 
     // 頁面切換控制
     function showPage(pageId) {
-      document.getElementById('homePage').style.display = pageId === 'homePage' ? 'flex' : 'none';
+      document.getElementById('homePage').style.display = pageId === 'homePage' ? 'block' : 'none';
       document.getElementById('taskPage').classList.toggle('active', pageId === 'taskPage');
       document.getElementById('catPage').classList.toggle('active', pageId === 'catPage');
     }
