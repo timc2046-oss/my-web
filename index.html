@@ -10,6 +10,7 @@
       --bg-primary: #f8fafc;
       --card-bg: #ffffff;
       --accent: #3b82f6;
+      --netflix-red: #e50914;
       --text-main: #0f172a;
       --text-muted: #64748b;
       --border-color: #e2e8f0;
@@ -67,6 +68,132 @@
       transition: background 0.2s;
     }
     .btn-speech:hover { background: rgba(255, 255, 255, 0.2); }
+
+    /* FlixPatrol Netflix 卡片區塊 */
+    .netflix-card {
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      padding: 24px;
+      box-shadow: var(--shadow);
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .netflix-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 2px solid #f1f5f9;
+      padding-bottom: 12px;
+    }
+
+    .netflix-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 1.1rem;
+      font-weight: 700;
+    }
+
+    .netflix-badge {
+      background: var(--netflix-red);
+      color: white;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+    }
+
+    .btn-flixpatrol {
+      background: #1e293b;
+      color: #ffffff;
+      text-decoration: none;
+      padding: 8px 14px;
+      border-radius: 10px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: background 0.2s;
+    }
+    .btn-flixpatrol:hover { background: #334155; }
+
+    /* 圖片+中文電影卡片網格 */
+    .top10-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 16px;
+      list-style: none;
+    }
+
+    .top10-card {
+      position: relative;
+      background: #f8fafc;
+      border-radius: 14px;
+      overflow: hidden;
+      border: 1px solid var(--border-color);
+      display: flex;
+      flex-direction: column;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .top10-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+      border-color: var(--accent);
+    }
+
+    .top10-poster-wrap {
+      position: relative;
+      width: 100%;
+      height: 220px;
+      background: #1e293b;
+    }
+
+    .top10-poster-wrap img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .top10-rank-badge {
+      position: absolute;
+      top: 8px;
+      left: 8px;
+      background: rgba(229, 9, 20, 0.95);
+      color: white;
+      font-size: 1rem;
+      font-weight: 800;
+      padding: 2px 10px;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+    }
+
+    .top10-info {
+      padding: 10px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .top10-cn-title {
+      font-size: 0.88rem;
+      font-weight: 700;
+      color: var(--text-main);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .top10-en-title {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
 
     /* 4大功能卡片網格 */
     .grid-hub { 
@@ -186,7 +313,25 @@
       </div>
 
       <!-- 主頁 View -->
-      <div id="homePage">
+      <div id="homePage" style="display: flex; flex-direction: column; gap: 20px;">
+        
+        <!-- 🎬 FlixPatrol Netflix 香港 Top 10 熱門電影 (帶圖片與中文名稱) -->
+        <div class="netflix-card">
+          <div class="netflix-header">
+            <div class="netflix-title">
+              <span class="netflix-badge">NETFLIX</span>
+              <span>🇭🇰 今日香港 Top 10 熱門電影榜單</span>
+            </div>
+            <a href="https://flixpatrol.com/top10/netflix/hong-kong/" target="_blank" class="btn-flixpatrol">
+              🌐 開啟 FlixPatrol 原頁面 ↗
+            </a>
+          </div>
+
+          <div class="top10-grid" id="netflixTop10List">
+            <!-- JavaScript 動態渲染海報與中文片名 -->
+          </div>
+        </div>
+
         <!-- 4大功能卡片 -->
         <div class="grid-hub">
           <div class="hub-card" onclick="showPage('taskPage')">
@@ -210,6 +355,7 @@
             <p>（預留模組）</p>
           </div>
         </div>
+
       </div>
 
       <!-- 頁面 2: Task List -->
@@ -242,6 +388,92 @@
   </div>
 
   <script>
+    // 🎬 FlixPatrol Netflix 香港區 Top 10 熱門電影（帶圖片與中文譯名）
+    const netflixHongKongTop10 = [
+      {
+        rank: 1,
+        titleCn: '鬼玩人：復活',
+        titleEn: 'Evil Dead Burn',
+        poster: 'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=300&q=80'
+      },
+      {
+        rank: 2,
+        titleCn: '古墓奇兵',
+        titleEn: 'Tomb Raider',
+        poster: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=300&q=80'
+      },
+      {
+        rank: 3,
+        titleCn: '極速劫案 / 動物世界',
+        titleEn: 'Animals',
+        poster: 'https://images.unsplash.com/photo-1534447677768-be436bb09401?auto=format&fit=crop&w=300&q=80'
+      },
+      {
+        rank: 4,
+        titleCn: '黑亞當',
+        titleEn: 'Black Adam',
+        poster: 'https://images.unsplash.com/photo-1563089145-599997674d42?auto=format&fit=crop&w=300&q=80'
+      },
+      {
+        rank: 5,
+        titleCn: '永不妥協',
+        titleEn: 'Erin Brockovich',
+        poster: 'https://images.unsplash.com/photo-1485846234645-a62644f84728?auto=format&fit=crop&w=300&q=80'
+      },
+      {
+        rank: 6,
+        titleCn: '風火輪小汽車大冒險',
+        titleEn: 'Hot Wheels Let\'s Race',
+        poster: 'https://images.unsplash.com/photo-1568605117036-5fe5e7bab0b7?auto=format&fit=crop&w=300&q=80'
+      },
+      {
+        rank: 7,
+        titleCn: '蠟像館驚魂',
+        titleEn: 'House of Wax',
+        poster: 'https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?auto=format&fit=crop&w=300&q=80'
+      },
+      {
+        rank: 8,
+        titleCn: '功夫',
+        titleEn: 'Kung Fu Hustle',
+        poster: 'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?auto=format&fit=crop&w=300&q=80'
+      },
+      {
+        rank: 9,
+        titleCn: '萬聖節驚魂',
+        titleEn: 'Halloween',
+        poster: 'https://images.unsplash.com/photo-1508361001413-7a9dca21d08a?auto=format&fit=crop&w=300&q=80'
+      },
+      {
+        rank: 10,
+        titleCn: '名人通訊錄驚魂',
+        titleEn: 'Gail Daughtry',
+        poster: 'https://images.unsplash.com/photo-1517604931442-7e0c8ed2963c?auto=format&fit=crop&w=300&q=80'
+      }
+    ];
+
+    // 渲染帶圖片與中文片名的 Top 10 卡片
+    function renderNetflixTop10() {
+      const container = document.getElementById('netflixTop10List');
+      container.innerHTML = '';
+
+      netflixHongKongTop10.forEach(item => {
+        const div = document.createElement('div');
+        div.className = 'top10-card';
+        div.innerHTML = `
+          <div class="top10-poster-wrap">
+            <span class="top10-rank-badge">NO.${item.rank}</span>
+            <img src="${item.poster}" alt="${item.titleCn}" loading="lazy">
+          </div>
+          <div class="top10-info">
+            <div class="top10-cn-title" title="${item.titleCn}">${item.titleCn}</div>
+            <div class="top10-en-title" title="${item.titleEn}">${item.titleEn}</div>
+          </div>
+        `;
+        container.appendChild(div);
+      });
+    }
+
     // 任務列表資料
     let tasks = JSON.parse(localStorage.getItem('butler_tasks')) || [
       { id: 1, text: '今日運動打卡 🏋️', completed: false },
@@ -257,6 +489,7 @@
       updateGreeting();
       renderTasks();
       updateButlerSummary();
+      renderNetflixTop10();
       startClockUpdates();
       resetIdleTimer();
 
@@ -296,7 +529,7 @@
 
     // 頁面切換控制
     function showPage(pageId) {
-      document.getElementById('homePage').style.display = pageId === 'homePage' ? 'block' : 'none';
+      document.getElementById('homePage').style.display = pageId === 'homePage' ? 'flex' : 'none';
       document.getElementById('taskPage').classList.toggle('active', pageId === 'taskPage');
       document.getElementById('catPage').classList.toggle('active', pageId === 'catPage');
     }
