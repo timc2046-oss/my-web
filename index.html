@@ -349,7 +349,6 @@
     const API_BASE = "https://my-web.fktimchoi.workers.dev";
     const GITHUB_USER = "timc2046-oss";
     const GITHUB_REPO = "my-web";
-    const GITHUB_TOKEN = "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";
 
     let todayStr = getFormattedDate(new Date());
     let selectedDateStr = todayStr;
@@ -425,7 +424,7 @@
       });
     }
 
-    // 🎵 抓取 GitHub 音樂清單 (直接使用 encodeURI 確保網址與中文正確)
+    // 🎵 抓取 GitHub 音樂清單（透過 Cloudflare Worker 代理，不露 Token）
     async function fetchGitHubMusic() {
       const listEl = document.getElementById('uploadedMusicList');
       if (!listEl) return;
@@ -433,10 +432,7 @@
       listEl.innerHTML = '<li class="task-item"><span>載入中...</span></li>';
 
       try {
-        const response = await fetch('https://api.github.com/repos/' + GITHUB_USER + '/' + GITHUB_REPO + '/contents/music', {
-          headers: { 'Authorization': 'Bearer ' + GITHUB_TOKEN.trim() }
-        });
-        
+        const response = await fetch(API_BASE + '/api/music');
         if (!response.ok) {
           listEl.innerHTML = '<li class="task-item"><span>目前沒有上傳任何音樂（或 music 資料夾尚未建立）</span></li>';
           return;
@@ -460,7 +456,7 @@
 
           songsArray.push({
             "name": originalName,
-            "artist": "GitHub 雲端",
+            "artist": "雲端音樂",
             "album": "我的音樂庫",
             "url": safeUrl,
             "cover_art_url": "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&w=100&q=80"
@@ -471,7 +467,6 @@
           li.innerHTML = '<span>🎵 ' + originalName + '</span>' +
             '<div class="task-actions">' +
               '<button class="btn-action" onclick="playCloudSong(' + index + ')">播放</button>' +
-              '<button class="btn-delete" onclick="deleteGitHubMusic(\'' + file.path + '\', \'' + file.sha + '\')">🗑️ 刪除</button>' +
             '</div>';
           listEl.appendChild(li);
         });
@@ -492,19 +487,17 @@
 
       } catch (err) {
         console.error(err);
-        listEl.innerHTML = '<li class="task-item"><span>載入失敗，請檢查 GitHub 設定</span></li>';
+        listEl.innerHTML = '<li class="task-item"><span>載入失敗，請檢查 Worker 設定</span></li>';
       }
     }
 
-    // 🔀 隨機讀取 relaxmusic 資料夾內檔案，建立隨機播放列表 (直接指向 download_url)
+    // 🔀 隨機播放 relaxmusic（透過 Cloudflare Worker 代理）
     async function playRelaxMusicShuffle() {
       try {
-        const res = await fetch('https://api.github.com/repos/' + GITHUB_USER + '/' + GITHUB_REPO + '/contents/music/relaxmusic', {
-          headers: { 'Authorization': 'Bearer ' + GITHUB_TOKEN.trim() }
-        });
+        const res = await fetch(API_BASE + '/api/relaxmusic');
 
         if (!res.ok) {
-          alert("找不到 relaxmusic 資料夾或權限不足！");
+          alert("找不到 relaxmusic 資料夾或 Worker 連線失敗！");
           return;
         }
 
@@ -531,7 +524,7 @@
           });
         });
 
-        // 隨機打亂順序 (Fisher-Yates Shuffle 演算法)
+        // 隨機打亂順序
         for (let i = songsArray.length - 1; i > 0; i--) {
           const j = Math.floor(Math.random() * (i + 1));
           [songsArray[i], songsArray[j]] = [songsArray[j], songsArray[i]];
@@ -553,7 +546,7 @@
         Amplitude.playSongAtIndex(0);
       } catch (err) {
         console.error(err);
-        alert("載入 relaxmusic 失敗，請確認資料夾名稱與權限！");
+        alert("載入 relaxmusic 失敗！");
       }
     }
 
