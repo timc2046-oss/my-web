@@ -600,7 +600,7 @@
       latestStockPrices.forEach(stock => {
         const isPositive = parseFloat(stock.change) >= 0;
         const changeClass = isPositive ? 'up' : 'down';
-        const sign = isPositive ? '+' : '';
+        const sign = isPositive ? 'a' : '';
         const costPrice = parseFloat(stockCosts[stock.symbol]) || 0;
         const currentPrice = parseFloat(stock.price) || 0;
 
@@ -611,7 +611,7 @@
           if (costPrice > 0 && currentPrice > 0) {
             const profit = currentPrice - costPrice;
             const profitPercent = ((profit / costPrice) * 100).toFixed(2);
-            const profitSign = profit >= 0 ? 'a' : '';
+            const profitSign = profit >= 0 ? '+' : '';
             const profitColor = profit >= 0 ? '#16a34a' : '#dc2626';
             costHtml = '<div class="stock-cost-info">成本 $' + costPrice.toFixed(2) + ' <span style="color:' + profitColor + '; font-weight:600;">(' + profitSign + profitPercent + '%)</span></div>';
           } else {
