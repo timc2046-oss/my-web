@@ -486,7 +486,6 @@
       }
     }
 
-    // 🎵 處理上傳檔案到 GitHub（已修復非 ISO-8859-1 錯誤）
     function handleFileSelect(input) {
       const file = input.files[0];
       if (!file) return;
@@ -499,16 +498,16 @@
       reader.onload = function () {
         const base64Content = reader.result.split(',')[1];
         
-        // 使用 encodeURIComponent 確保檔名中的中文或特殊字元不會造成 fetch headers 崩潰
-        const safeFileName = encodeURIComponent(file.name);
-        const filePath = 'music/' + Date.now() + '_' + safeFileName;
+        // 為了避免中文檔名在 GitHub 路由出錯，我們用時間戳記加上固定副檔名，或保留英文
+        const safeFileName = Date.now() + '.mp3';
+        const filePath = 'music/' + safeFileName;
         
         statusEl.innerText = '正在上傳到 GitHub...';
 
         fetch('https://api.github.com/repos/' + GITHUB_USER + '/' + GITHUB_REPO + '/contents/' + filePath, {
           method: 'PUT',
           headers: {
-            'Authorization': 'Bearer ' + GITHUB_TOKEN.trim(), // 確保 Token 前後沒有多餘空白
+            'Authorization': 'Bearer ' + GITHUB_TOKEN.trim(),
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
@@ -516,8 +515,12 @@
             content: base64Content
           })
         })
-        .then(response => {
-          if (!response.ok) throw new Error('上傳失敗');
+        .then(async response => {
+          // 如果 GitHub 回傳不是 2xx，把錯誤內容讀出來
+          if (!response.ok) {
+            const errJson = await response.json().catch(() => ({}));
+            throw new Error(errJson.message || ('HTTP 錯誤碼: ' + response.status));
+          }
           return response.json();
         })
         .then(() => {
@@ -525,6 +528,8 @@
           fetchGitHubMusic();
         })
         .catch(error => {
+          // 這裡會顯示真正的失敗原因！
+          console.error(error);
           statusEl.innerText = '上傳失敗: ' + error.message;
         });
       };
