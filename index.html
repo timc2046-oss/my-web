@@ -4,16 +4,12 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>智能管家個人面板</title>
+  <link rel="icon" href="data:,">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <!-- AmplitudeJS CDN -->
   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/amplitudejs@v5.3.2/dist/amplitude.js"></script>
 
   <style>
-    .upload-container { background: var(--card-bg); border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow); margin-bottom: 20px; display: flex; align-items: center; gap: 15px; border: 1px solid var(--border-color); }
-    .upload-btn { background: var(--accent); color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 600; transition: 0.2s; }
-    .upload-btn:hover { opacity: 0.9; }
-    .upload-status { font-size: 0.85rem; color: var(--text-muted); }
-
     .amplitude-player-bar {
       position: fixed; bottom: 0; left: 0; width: 100%; background: #1e293b; color: #ffffff;
       padding: 12px 25px; display: flex; align-items: center; justify-content: space-between;
@@ -173,8 +169,8 @@
           </div>
           <div class="hub-card" onclick="showPage('musicPage')">
             <div class="card-icon">🎵</div>
-            <h3>音樂庫與上傳</h3>
-            <p>播放、上傳與刪除你的 GitHub 雲端音樂</p>
+            <h3>雲端音樂庫</h3>
+            <p>播放與管理你的 GitHub 雲端音樂</p>
           </div>
         </div>
       </div>
@@ -308,20 +304,14 @@
         </div>
       </div>
 
-      <!-- 🎵 音樂管理分頁模組 -->
+      <!-- 🎵 音樂管理分頁模組（已移除上傳介面） -->
       <div id="musicPage" class="page-view">
         <div class="page-header">
-          <h2>🎵 雲端音樂庫與上傳管理</h2>
+          <h2>🎵 雲端音樂庫</h2>
           <button class="btn-back" onclick="showPage('homePage')">← 返回主頁</button>
         </div>
 
-        <div class="upload-container" style="margin-bottom: 25px;">
-          <input type="file" id="musicFile" accept="audio/mp3" style="display: none;" onchange="handleFileSelect(this)">
-          <button class="upload-btn" onclick="document.getElementById('musicFile').click()">📁 選擇 MP3 並上傳到 GitHub</button>
-          <span class="upload-status" id="uploadStatus">尚未選擇檔案</span>
-        </div>
-
-        <h3 style="margin-bottom: 15px; font-size: 1.1rem;">已上傳的音樂清單</h3>
+        <h3 style="margin-bottom: 15px; font-size: 1.1rem;">已上傳的音樂清單 (music 資料夾)</h3>
         <ul id="uploadedMusicList" class="task-list">
           <li class="task-item"><span>載入中...</span></li>
         </ul>
@@ -342,6 +332,7 @@
 
     <div class="player-controls">
       <button class="player-btn amplitude-repeat" id="repeatBtn" onclick="toggleRepeat()" title="重複播放">🔁</button>
+      <button class="player-btn amplitude-shuffle" id="shuffleBtn" onclick="playRelaxMusicShuffle()" title="隨機播放 relaxmusic">🔀</button>
       <button class="player-btn amplitude-prev">⏮️</button>
       <button class="player-btn amplitude-play-pause" id="play-pause">▶️</button>
       <button class="player-btn amplitude-next">⏭️</button>
@@ -358,7 +349,7 @@
     const API_BASE = "https://my-web.fktimchoi.workers.dev";
     const GITHUB_USER = "timc2046-oss";
     const GITHUB_REPO = "my-web";
-    const GITHUB_TOKEN = "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";
+    const GITHUB_TOKEN = "你的GitHub_Token";
 
     let todayStr = getFormattedDate(new Date());
     let selectedDateStr = todayStr;
@@ -393,7 +384,7 @@
     const IDLE_TIMEOUT = 600000;
     let idleTimer;
 
-    // 初始化 AmplitudeJS (加入監聽更新曲名)
+    // 初始化 AmplitudeJS
     Amplitude.init({
       "songs": [
         {
@@ -434,7 +425,7 @@
       });
     }
 
-    // 🎵 抓取 GitHub 音樂清單（保留原檔名）
+    // 🎵 抓取 GitHub 音樂清單 (music 資料夾)
     async function fetchGitHubMusic() {
       const listEl = document.getElementById('uploadedMusicList');
       if (!listEl) return;
@@ -452,7 +443,7 @@
         }
 
         const files = await response.json();
-        const mp3Files = files.filter(file => file.name.toLowerCase().endsWith('.mp3'));
+        const mp3Files = files.filter(file => file.type === 'file' && file.name.toLowerCase().endsWith('.mp3'));
 
         if (mp3Files.length === 0) {
           listEl.innerHTML = '<li class="task-item"><span>目前沒有上傳任何 MP3 檔案</span></li>';
@@ -464,7 +455,6 @@
 
         mp3Files.forEach((file, index) => {
           const rawUrl = file.download_url;
-          // 支援解碼中文檔名，並移除上傳時加上的時間戳記前綴 (例如 1793190354417_Song.mp3 -> Song.mp3)
           let originalName = decodeURIComponent(file.name);
           originalName = originalName.replace(/^\d+_+/, "").replace(/\.mp3$/i, "");
 
@@ -506,60 +496,70 @@
       }
     }
 
-    // 🎵 處理上傳檔案到 GitHub（保留原檔名）
-    function handleFileSelect(input) {
-      const file = input.files[0];
-      if (!file) return;
-
-      const statusEl = document.getElementById('uploadStatus');
-      statusEl.innerText = '準備上傳: ' + file.name + '...';
-
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
-      reader.onload = function () {
-        const base64Content = reader.result.split(',')[1];
-        
-        // 保留使用者原本的檔名（加上時間戳記避免同名覆蓋）
-        const safeFileName = Date.now() + '_' + file.name;
-        const filePath = 'music/' + safeFileName;
-        
-        statusEl.innerText = '正在上傳到 GitHub...';
-
-        fetch('https://api.github.com/repos/' + GITHUB_USER + '/' + GITHUB_REPO + '/contents/' + filePath, {
-          method: 'PUT',
-          headers: {
-            'Authorization': 'Bearer ' + GITHUB_TOKEN.trim(),
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            message: 'Upload music: ' + file.name,
-            content: base64Content
-          })
-        })
-        .then(async response => {
-          if (!response.ok) {
-            const errJson = await response.json().catch(() => ({}));
-            throw new Error(errJson.message || ('HTTP 錯誤碼: ' + response.status));
-          }
-          return response.json();
-        })
-        .then(() => {
-          statusEl.innerText = '上傳成功！';
-          fetchGitHubMusic();
-        })
-        .catch(error => {
-          console.error(error);
-          statusEl.innerText = '上傳失敗: ' + error.message;
+    // 🔀 隨機讀取 relaxmusic 資料夾內的歌並建立隨機播放列表
+    async function playRelaxMusicShuffle() {
+      try {
+        const res = await fetch('https://api.github.com/repos/' + GITHUB_USER + '/' + GITHUB_REPO + '/contents/music/relaxmusic', {
+          headers: { 'Authorization': 'Bearer ' + GITHUB_TOKEN }
         });
-      };
+
+        if (!res.ok) {
+          alert("找不到 relaxmusic 資料夾或裡面沒有音樂！");
+          return;
+        }
+
+        const files = await res.json();
+        const mp3Files = files.filter(file => file.type === 'file' && file.name.toLowerCase().endsWith('.mp3'));
+
+        if (mp3Files.length === 0) {
+          alert("relaxmusic 資料夾內沒有找到 MP3 檔案！");
+          return;
+        }
+
+        let songsArray = [];
+        mp3Files.forEach(file => {
+          let originalName = decodeURIComponent(file.name);
+          originalName = originalName.replace(/^\d+_+/, "").replace(/\.mp3$/i, "");
+          songsArray.push({
+            "name": originalName,
+            "artist": "Relax 隨機播放",
+            "album": "relaxmusic",
+            "url": file.download_url,
+            "cover_art_url": "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&w=100&q=80"
+          });
+        });
+
+        // 隨機打亂順序 (Fisher-Yates Shuffle 演算法)
+        for (let i = songsArray.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [songsArray[i], songsArray[j]] = [songsArray[j], songsArray[i]];
+        }
+
+        // 重新初始化播放器並直接播放第一首
+        Amplitude.stop();
+        Amplitude.init({
+          "songs": songsArray,
+          "callbacks": {
+            "song_change": function() {
+              let activeSong = Amplitude.getActiveSongMetadata();
+              if (activeSong && activeSong.name) {
+                document.getElementById('currentSongTitle').innerText = activeSong.name;
+              }
+            }
+          }
+        });
+
+        Amplitude.playSongAtIndex(0);
+      } catch (err) {
+        console.error(err);
+        alert("載入 relaxmusic 失敗，請確認資料夾名稱與路徑！");
+      }
     }
 
-    // 🎵 刪除 GitHub 上的音樂（自動取得最新 SHA 確保成功）
     async function deleteGitHubMusic(filePath, fileSha) {
       if (!confirm("確定要從 GitHub 刪除這首音樂嗎？")) return;
 
       try {
-        // 1. 先跟 GitHub 查詢該檔案目前的最新資訊以取得正確的 SHA
         const checkRes = await fetch('https://api.github.com/repos/' + GITHUB_USER + '/' + GITHUB_REPO + '/contents/' + filePath, {
           headers: { 'Authorization': 'Bearer ' + GITHUB_TOKEN.trim() }
         });
@@ -567,14 +567,13 @@
         let currentSha = fileSha;
         if (checkRes.ok) {
           const fileInfo = await checkRes.json();
-          currentSha = fileInfo.sha; // 使用最新的 sha
+          currentSha = fileInfo.sha;
         } else if (checkRes.status === 404) {
           alert("GitHub 庫中已找不到此檔案，將自動重新整理清單。");
           fetchGitHubMusic();
           return;
         }
 
-        // 2. 發送刪除請求
         const response = await fetch('https://api.github.com/repos/' + GITHUB_USER + '/' + GITHUB_REPO + '/contents/' + filePath, {
           method: 'DELETE',
           headers: {
@@ -593,19 +592,17 @@
         }
 
         alert("已成功刪除！");
-        fetchGitHubMusic(); // 重新整理清單
+        fetchGitHubMusic();
       } catch (err) {
         alert('刪除發生錯誤: ' + err.message);
       }
     }
 
-    // 🎵 點擊播放時，強制先停止當前播放、切換並播放新歌
     function playCloudSong(index) {
-      Amplitude.stop(); // 先停止當前正在播的音樂（解決多首同時播放問題）
+      Amplitude.stop();
       Amplitude.playSongAtIndex(index);
     }
 
-    // 🔁 切換重複播放模式
     function toggleRepeat() {
       let repeatState = Amplitude.getConfig().repeat;
       const btn = document.getElementById('repeatBtn');
