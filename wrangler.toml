@@ -1,8 +1,0 @@
-name = "my-web"          # 你的 Worker 專案名稱（可改成你在 Cloudflare 建立的名字）
-main = "worker.js"       # 指定後端進入點
-compatibility_date = "2026-10-26"
-
-# 綁定你的 KV 雲端資料庫
-[[kv_namespaces]]
-binding = "BUTLER_DB"
-id = "045b370d6dd44a35958334486cbc8831"
