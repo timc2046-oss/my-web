@@ -454,7 +454,8 @@
         let songsArray = [];
 
         mp3Files.forEach((file, index) => {
-          const rawUrl = file.download_url;
+          // 使用 encodeURI 確保中文與空格檔名能被瀏覽器正確識別
+          const safeUrl = encodeURI(file.download_url);
           let originalName = decodeURIComponent(file.name);
           originalName = originalName.replace(/^\d+_+/, "").replace(/\.mp3$/i, "");
 
@@ -462,7 +463,7 @@
             "name": originalName,
             "artist": "GitHub 雲端",
             "album": "我的音樂庫",
-            "url": rawUrl,
+            "url": safeUrl,
             "cover_art_url": "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&w=100&q=80"
           });
 
@@ -520,11 +521,15 @@
         mp3Files.forEach(file => {
           let originalName = decodeURIComponent(file.name);
           originalName = originalName.replace(/^\d+_+/, "").replace(/\.mp3$/i, "");
+          
+          // 使用 encodeURI 確保網址中的中文與空格能被瀏覽器正確解析
+          const safeUrl = encodeURI(file.download_url);
+
           songsArray.push({
             "name": originalName,
             "artist": "Relax 隨機播放",
             "album": "relaxmusic",
-            "url": file.download_url,
+            "url": safeUrl,
             "cover_art_url": "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&w=100&q=80"
           });
         });
