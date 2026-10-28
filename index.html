@@ -486,6 +486,7 @@
       }
     }
 
+    // 🎵 處理上傳檔案到 GitHub（已修復非 ISO-8859-1 錯誤）
     function handleFileSelect(input) {
       const file = input.files[0];
       if (!file) return;
@@ -497,14 +498,17 @@
       reader.readAsDataURL(file);
       reader.onload = function () {
         const base64Content = reader.result.split(',')[1];
-        const filePath = 'music/' + Date.now() + '_' + file.name;
+        
+        // 使用 encodeURIComponent 確保檔名中的中文或特殊字元不會造成 fetch headers 崩潰
+        const safeFileName = encodeURIComponent(file.name);
+        const filePath = 'music/' + Date.now() + '_' + safeFileName;
         
         statusEl.innerText = '正在上傳到 GitHub...';
 
         fetch('https://api.github.com/repos/' + GITHUB_USER + '/' + GITHUB_REPO + '/contents/' + filePath, {
           method: 'PUT',
           headers: {
-            'Authorization': 'Bearer ' + GITHUB_TOKEN,
+            'Authorization': 'Bearer ' + GITHUB_TOKEN.trim(), // 確保 Token 前後沒有多餘空白
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
