@@ -349,7 +349,7 @@
     const API_BASE = "https://my-web.fktimchoi.workers.dev";
     const GITHUB_USER = "timc2046-oss";
     const GITHUB_REPO = "my-web";
-    const GITHUB_TOKEN = "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";
+    const GITHUB_TOKEN = "你的GitHub_Token";
 
     let todayStr = getFormattedDate(new Date());
     let selectedDateStr = todayStr;
@@ -425,7 +425,7 @@
       });
     }
 
-    // 🎵 抓取 GitHub 音樂清單並轉為 Blob URL (安全繞過權限限制)
+    // 🎵 抓取 GitHub 音樂清單 (直接使用 encodeURI 確保網址與中文正確)
     async function fetchGitHubMusic() {
       const listEl = document.getElementById('uploadedMusicList');
       if (!listEl) return;
@@ -453,28 +453,16 @@
         listEl.innerHTML = '';
         let songsArray = [];
 
-        for (let i = 0; i < mp3Files.length; i++) {
-          const file = mp3Files[i];
+        mp3Files.forEach((file, index) => {
+          const safeUrl = encodeURI(file.download_url);
           let originalName = decodeURIComponent(file.name);
           originalName = originalName.replace(/^\d+_+/, "").replace(/\.mp3$/i, "");
-
-          // 透過帶 Token 的 fetch 取得二進位資料並轉為 Blob URL
-          let blobUrl = "https://upload.wikimedia.org/wikipedia/commons/b/b2/Silence.ogg";
-          try {
-            const audioRes = await fetch(file.download_url, {
-              headers: { 'Authorization': 'Bearer ' + GITHUB_TOKEN.trim() }
-            });
-            if (audioRes.ok) {
-              const blob = await audioRes.blob();
-              blobUrl = URL.createObjectURL(blob);
-            }
-          } catch(e) { console.log('音訊載入失敗', e); }
 
           songsArray.push({
             "name": originalName,
             "artist": "GitHub 雲端",
             "album": "我的音樂庫",
-            "url": blobUrl,
+            "url": safeUrl,
             "cover_art_url": "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&w=100&q=80"
           });
 
@@ -482,11 +470,11 @@
           li.className = 'task-item';
           li.innerHTML = '<span>🎵 ' + originalName + '</span>' +
             '<div class="task-actions">' +
-              '<button class="btn-action" onclick="playCloudSong(' + i + ')">播放</button>' +
+              '<button class="btn-action" onclick="playCloudSong(' + index + ')">播放</button>' +
               '<button class="btn-delete" onclick="deleteGitHubMusic(\'' + file.path + '\', \'' + file.sha + '\')">🗑️ 刪除</button>' +
             '</div>';
           listEl.appendChild(li);
-        }
+        });
 
         if (songsArray.length > 0) {
           Amplitude.init({
@@ -508,7 +496,7 @@
       }
     }
 
-    // 🔀 隨機讀取 relaxmusic 資料夾內檔案，轉為 Blob URL 並隨機播放
+    // 🔀 隨機讀取 relaxmusic 資料夾內檔案，建立隨機播放列表 (直接指向 download_url)
     async function playRelaxMusicShuffle() {
       try {
         const res = await fetch('https://api.github.com/repos/' + GITHUB_USER + '/' + GITHUB_REPO + '/contents/music/relaxmusic', {
@@ -528,39 +516,25 @@
           return;
         }
 
-        // 隨機打亂順序
-        for (let i = mp3Files.length - 1; i > 0; i--) {
-          const j = Math.floor(Math.random() * (i + 1));
-          [mp3Files[i], mp3Files[j]] = [mp3Files[j], mp3Files[i]];
-        }
-
         let songsArray = [];
-        for (const file of mp3Files) {
+        mp3Files.forEach(file => {
           let originalName = decodeURIComponent(file.name);
           originalName = originalName.replace(/^\d+_+/, "").replace(/\.mp3$/i, "");
-
-          // 帶入 GITHUB_TOKEN 下載音訊並建立 Blob URL
-          const audioRes = await fetch(file.download_url, {
-            headers: { 'Authorization': 'Bearer ' + GITHUB_TOKEN.trim() }
-          });
-          
-          if (!audioRes.ok) continue;
-
-          const blob = await audioRes.blob();
-          const blobUrl = URL.createObjectURL(blob);
+          const safeUrl = encodeURI(file.download_url);
 
           songsArray.push({
             "name": originalName,
             "artist": "Relax 隨機播放",
             "album": "relaxmusic",
-            "url": blobUrl,
+            "url": safeUrl,
             "cover_art_url": "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&w=100&q=80"
           });
-        }
+        });
 
-        if (songsArray.length === 0) {
-          alert("無法載入 relaxmusic 中的音訊檔案。");
-          return;
+        // 隨機打亂順序 (Fisher-Yates Shuffle 演算法)
+        for (let i = songsArray.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [songsArray[i], songsArray[j]] = [songsArray[j], songsArray[i]];
         }
 
         Amplitude.stop();
