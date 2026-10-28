@@ -27,6 +27,7 @@
     .player-controls { display: flex; align-items: center; gap: 15px; }
     .player-btn { background: none; border: none; color: #fff; font-size: 1.1rem; cursor: pointer; transition: 0.2s; }
     .player-btn:hover { color: var(--accent); }
+    .player-btn.active-repeat { color: var(--success); text-shadow: 0 0 8px rgba(16, 185, 129, 0.6); }
     .player-progress-container { display: flex; align-items: center; gap: 10px; flex: 1; max-width: 400px; margin: 0 30px; }
     .amplitude-song-slider { width: 100%; cursor: pointer; accent-color: var(--accent); }
     .player-time { font-size: 0.75rem; color: #94a3b8; white-space: nowrap; }
@@ -76,7 +77,6 @@
     .task-input-group button { background: var(--accent); color: white; border: none; padding: 12px 20px; border-radius: 10px; font-weight: 600; cursor: pointer; }
     .task-list { list-style: none; display: flex; flex-direction: column; gap: 10px; }
     .task-item { display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; background: #f8fafc; border-radius: 10px; border: 1px solid var(--border-color); }
-    .task-item.completed span { text-decoration: line-through; color: var(--text-muted); }
     .task-actions { display: flex; align-items: center; gap: 12px; }
     .btn-delete { background: none; border: none; color: var(--danger); cursor: pointer; font-size: 1rem; opacity: 0.7; transition: opacity 0.2s; }
     .btn-delete:hover { opacity: 1; }
@@ -144,7 +144,6 @@
 
       <!-- 🏠 主頁專屬 Content -->
       <div id="homePage">
-        <!-- 📈 美股 ETF 單行追蹤列 -->
         <div class="stock-tracker-bar">
           <div class="stock-tracker-title">📈 美股 ETF</div>
           <div class="stock-items-row" id="stockGridContainer">
@@ -331,16 +330,18 @@
     </div>
   </div>
 
+  <!-- 🎵 網頁下方的音樂播放器列 -->
   <div class="amplitude-player-bar">
     <div class="player-left">
       <img src="https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&w=100&q=80" class="amplitude-album-art player-cover" id="album-art">
       <div class="player-info">
-        <span class="amplitude-current-song-name player-title">載入中...</span>
-        <span class="amplitude-current-song-artist player-artist">音樂庫</span>
+        <span class="amplitude-current-song-name player-title" id="currentSongTitle">尚未播放音樂</span>
+        <span class="amplitude-current-song-artist player-artist">我的音樂庫</span>
       </div>
     </div>
 
     <div class="player-controls">
+      <button class="player-btn amplitude-repeat" id="repeatBtn" onclick="toggleRepeat()" title="重複播放">🔁</button>
       <button class="player-btn amplitude-prev">⏮️</button>
       <button class="player-btn amplitude-play-pause" id="play-pause">▶️</button>
       <button class="player-btn amplitude-next">⏭️</button>
@@ -354,12 +355,10 @@
   </div>
 
   <script>
-    // ⚠️ 請填入你的 Worker 後端網址 (例如 https://your-worker.your-subdomain.workers.dev)
     const API_BASE = "https://my-web.fktimchoi.workers.dev";
-
-    const GITHUB_USER = "timc2046-oss";
-    const GITHUB_REPO = "my-web";
-    const GITHUB_TOKEN = "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";
+    const GITHUB_USER = "你的GitHub帳號";
+    const GITHUB_REPO = "你的專案名稱";
+    const GITHUB_TOKEN = "你的GitHub_Token";
 
     let todayStr = getFormattedDate(new Date());
     let selectedDateStr = todayStr;
@@ -388,23 +387,31 @@
       }
     ];
     let currentCategory = 'all';
-
     let historyRecords = {};
     let currentYear = new Date().getFullYear();
     let currentMonth = new Date().getMonth();
     const IDLE_TIMEOUT = 600000;
     let idleTimer;
 
+    // 初始化 AmplitudeJS (加入監聽更新曲名)
     Amplitude.init({
       "songs": [
         {
-          "name": "Lofi 輕音樂示範曲",
-          "artist": "Public Domain",
-          "album": "智能放鬆專用",
-          "url": "https://upload.wikimedia.org/wikipedia/commons/b/b2/Silence.ogg", // 替換為穩定的音檔連結
+          "name": "尚未選擇音樂",
+          "artist": "音樂庫",
+          "album": "我的音樂庫",
+          "url": "https://upload.wikimedia.org/wikipedia/commons/b/b2/Silence.ogg",
           "cover_art_url": "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&w=100&q=80"
         }
-      ]
+      ],
+      "callbacks": {
+        "song_change": function() {
+          let activeSong = Amplitude.getActiveSongMetadata();
+          if (activeSong && activeSong.name) {
+            document.getElementById('currentSongTitle').innerText = activeSong.name;
+          }
+        }
+      }
     });
 
     async function init() {
@@ -427,6 +434,7 @@
       });
     }
 
+    // 🎵 抓取 GitHub 音樂清單（保留原檔名）
     async function fetchGitHubMusic() {
       const listEl = document.getElementById('uploadedMusicList');
       if (!listEl) return;
@@ -444,7 +452,7 @@
         }
 
         const files = await response.json();
-        const mp3Files = files.filter(file => file.name.endsWith('.mp3'));
+        const mp3Files = files.filter(file => file.name.toLowerCase().endsWith('.mp3'));
 
         if (mp3Files.length === 0) {
           listEl.innerHTML = '<li class="task-item"><span>目前沒有上傳任何 MP3 檔案</span></li>';
@@ -456,10 +464,12 @@
 
         mp3Files.forEach((file, index) => {
           const rawUrl = file.download_url;
-          const songName = file.name.replace(/\.[^/.]+$/, "").replace(/^\d+_/, "");
+          // 支援解碼中文檔名，並移除上傳時加上的時間戳記前綴 (例如 1793190354417_Song.mp3 -> Song.mp3)
+          let originalName = decodeURIComponent(file.name);
+          originalName = originalName.replace(/^\d+_+/, "").replace(/\.mp3$/i, "");
 
           songsArray.push({
-            "name": songName,
+            "name": originalName,
             "artist": "GitHub 雲端",
             "album": "我的音樂庫",
             "url": rawUrl,
@@ -468,7 +478,7 @@
 
           const li = document.createElement('li');
           li.className = 'task-item';
-          li.innerHTML = '<span>🎵 ' + songName + '</span>' +
+          li.innerHTML = '<span>🎵 ' + originalName + '</span>' +
             '<div class="task-actions">' +
               '<button class="btn-action" onclick="playCloudSong(' + index + ')">播放</button>' +
               '<button class="btn-delete" onclick="deleteGitHubMusic(\'' + file.path + '\', \'' + file.sha + '\')">🗑️ 刪除</button>' +
@@ -477,7 +487,17 @@
         });
 
         if (songsArray.length > 0) {
-          Amplitude.init({ "songs": songsArray });
+          Amplitude.init({
+            "songs": songsArray,
+            "callbacks": {
+              "song_change": function() {
+                let activeSong = Amplitude.getActiveSongMetadata();
+                if (activeSong && activeSong.name) {
+                  document.getElementById('currentSongTitle').innerText = activeSong.name;
+                }
+              }
+            }
+          });
         }
 
       } catch (err) {
@@ -486,6 +506,7 @@
       }
     }
 
+    // 🎵 處理上傳檔案到 GitHub（保留原檔名）
     function handleFileSelect(input) {
       const file = input.files[0];
       if (!file) return;
@@ -498,8 +519,8 @@
       reader.onload = function () {
         const base64Content = reader.result.split(',')[1];
         
-        // 為了避免中文檔名在 GitHub 路由出錯，我們用時間戳記加上固定副檔名，或保留英文
-        const safeFileName = Date.now() + '.mp3';
+        // 保留使用者原本的檔名（加上時間戳記避免同名覆蓋）
+        const safeFileName = Date.now() + '_' + file.name;
         const filePath = 'music/' + safeFileName;
         
         statusEl.innerText = '正在上傳到 GitHub...';
@@ -516,7 +537,6 @@
           })
         })
         .then(async response => {
-          // 如果 GitHub 回傳不是 2xx，把錯誤內容讀出來
           if (!response.ok) {
             const errJson = await response.json().catch(() => ({}));
             throw new Error(errJson.message || ('HTTP 錯誤碼: ' + response.status));
@@ -528,7 +548,6 @@
           fetchGitHubMusic();
         })
         .catch(error => {
-          // 這裡會顯示真正的失敗原因！
           console.error(error);
           statusEl.innerText = '上傳失敗: ' + error.message;
         });
@@ -560,8 +579,26 @@
       }
     }
 
+    // 🎵 點擊播放時，強制先停止當前播放、切換並播放新歌
     function playCloudSong(index) {
+      Amplitude.stop(); // 先停止當前正在播的音樂（解決多首同時播放問題）
       Amplitude.playSongAtIndex(index);
+    }
+
+    // 🔁 切換重複播放模式
+    function toggleRepeat() {
+      let repeatState = Amplitude.getConfig().repeat;
+      const btn = document.getElementById('repeatBtn');
+      
+      if (!repeatState) {
+        Amplitude.setRepeat(true);
+        btn.classList.add('active-repeat');
+        btn.title = "重複播放：已開啟";
+      } else {
+        Amplitude.setRepeat(false);
+        btn.classList.remove('active-repeat');
+        btn.title = "重複播放：已關閉";
+      }
     }
 
     async function fetchStockPrices() {
@@ -707,7 +744,7 @@
           }
         }
       } catch (err) { 
-        console.log('雲端資料解析異常，已自動重設', err);
+        console.log('雲端資料解析異常', err);
         historyRecords = {};
       }
     }
@@ -753,7 +790,7 @@
         const data = JSON.parse(textData);
         if (data.emoji) matchedEmoji = data.emoji;
       } catch (e) {
-        console.log('AI 圖示請求失敗，採用預設圖示', e);
+        console.log('AI 圖示請求失敗', e);
       }
 
       const finalTitle = rawText + ' ' + matchedEmoji;
@@ -1150,7 +1187,7 @@
         const item = document.createElement('div');
         item.style.display = 'flex';
         item.style.justifyContent = 'space-between';
-        item.style.alignItems = 'center';
+        item.style.alignItems: 'center';
         item.style.padding = '6px 10px';
         item.style.background = 'white';
         item.style.borderRadius = '6px';
