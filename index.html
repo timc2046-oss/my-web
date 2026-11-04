@@ -6,28 +6,8 @@
   <title>智能管家個人面板</title>
   <link rel="icon" href="data:,">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  <!-- AmplitudeJS CDN -->
-  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/amplitudejs@v5.3.2/dist/amplitude.js"></script>
 
   <style>
-    .amplitude-player-bar {
-      position: fixed; bottom: 0; left: 0; width: 100%; background: #1e293b; color: #ffffff;
-      padding: 12px 25px; display: flex; align-items: center; justify-content: space-between;
-      border-top: 1px solid var(--border-color); box-shadow: 0 -10px 25px rgba(0,0,0,0.1); z-index: 998;
-    }
-    .player-left { display: flex; align-items: center; gap: 15px; }
-    .player-cover { width: 45px; height: 45px; border-radius: 8px; object-fit: cover; background: #334155; }
-    .player-info { display: flex; flex-direction: column; gap: 2px; }
-    .player-title { font-size: 0.9rem; font-weight: 600; color: #fff; }
-    .player-artist { font-size: 0.75rem; color: #94a3b8; }
-    .player-controls { display: flex; align-items: center; gap: 15px; }
-    .player-btn { background: none; border: none; color: #fff; font-size: 1.1rem; cursor: pointer; transition: 0.2s; }
-    .player-btn:hover { color: var(--accent); }
-    .player-btn.active-repeat { color: var(--success); text-shadow: 0 0 8px rgba(16, 185, 129, 0.6); }
-    .player-progress-container { display: flex; align-items: center; gap: 10px; flex: 1; max-width: 400px; margin: 0 30px; }
-    .amplitude-song-slider { width: 100%; cursor: pointer; accent-color: var(--accent); }
-    .player-time { font-size: 0.75rem; color: #94a3b8; white-space: nowrap; }
-
     :root {
       --bg-primary: #f8fafc; --card-bg: #ffffff; --accent: #3b82f6; --text-main: #0f172a;
       --text-muted: #64748b; --border-color: #e2e8f0; --radius: 20px;
@@ -36,7 +16,7 @@
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
     html, body { width: 100vw; height: 100vh; overflow: hidden; background-color: var(--bg-primary); color: var(--text-main); }
     .app-frame { width: 100%; height: 100%; display: flex; flex-direction: column; position: relative; }
-    .container { padding: 30px; flex: 1; display: flex; flex-direction: column; gap: 20px; overflow-y: auto; padding-bottom: 90px; }
+    .container { padding: 30px; flex: 1; display: flex; flex-direction: column; gap: 20px; overflow-y: auto; padding-bottom: 40px; }
     .butler-header { background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); color: #ffffff; padding: 24px 30px; border-radius: var(--radius); display: flex; justify-content: space-between; align-items: center; }
     .btn-speech { background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); color: white; padding: 10px 18px; border-radius: 12px; cursor: pointer; font-size: 0.9rem; }
     .grid-hub { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
@@ -162,15 +142,15 @@
             <h3>網路食譜靈感簿</h3>
             <p>收集與記錄網上看到的美味菜色做法與心得</p>
           </div>
+          <div class="hub-card" onclick="showPage('deliveryPage')">
+            <div class="card-icon">🍜</div>
+            <h3>外賣餐廳清單</h3>
+            <p>管理與快速查詢你最愛的外賣口袋名單</p>
+          </div>
           <div class="hub-card" onclick="showPage('catPage')">
             <div class="card-icon">🐱</div>
             <h3>貓咪影音牆</h3>
             <p>記錄貓咪的日常照片與可愛影片</p>
-          </div>
-          <div class="hub-card" onclick="showPage('musicPage')">
-            <div class="card-icon">🎵</div>
-            <h3>雲端音樂庫</h3>
-            <p>播放與管理你的 GitHub 雲端音樂</p>
           </div>
         </div>
       </div>
@@ -291,6 +271,40 @@
         </div>
       </div>
 
+      <!-- 🍜 外賣餐廳模組頁面 -->
+      <div id="deliveryPage" class="page-view">
+        <div class="page-header">
+          <h2>🍜 外賣餐廳清單</h2>
+          <button class="btn-back" onclick="showPage('homePage')">← 返回主頁</button>
+        </div>
+        <div class="menu-layout">
+          <div class="menu-tabs">
+            <button class="menu-tab-btn active" onclick="switchDeliveryCategory('all', this)">全部餐廳</button>
+            <button class="menu-tab-btn" onclick="switchDeliveryCategory('fastfood', this)">🍔 快餐 / 漢堡</button>
+            <button class="menu-tab-btn" onclick="switchDeliveryCategory('chinese', this)">🥟 中式 / 港式</button>
+            <button class="menu-tab-btn" onclick="switchDeliveryCategory('japanese', this)">🍣 日式 / 壽司</button>
+            <button class="menu-tab-btn" onclick="switchDeliveryCategory('cafe', this)">☕ 輕食 / 咖啡</button>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 10px;">
+            <div class="task-input-group">
+              <input type="text" id="newDeliveryName" placeholder="餐廳名稱（例如：麥當勞）">
+              <select id="newDeliveryCategory">
+                <option value="fastfood">快餐 / 漢堡</option>
+                <option value="chinese">中式 / 港式</option>
+                <option value="japanese">日式 / 壽司</option>
+                <option value="cafe">輕食 / 咖啡</option>
+              </select>
+            </div>
+            <div class="task-input-group">
+              <input type="text" id="newDeliveryPhone" placeholder="訂購電話（例如：1234-5678）" style="flex:1;">
+              <input type="text" id="newDeliveryNotes" placeholder="推薦餐點 / 備註..." style="flex:2;">
+              <button onclick="addDeliveryItem()">✨ 新增餐廳</button>
+            </div>
+          </div>
+          <div class="menu-grid" id="deliveryGridContainer"></div>
+        </div>
+      </div>
+
       <!-- 貓咪頁面 -->
       <div id="catPage" class="page-view">
         <div class="page-header">
@@ -304,51 +318,11 @@
         </div>
       </div>
 
-      <!-- 🎵 音樂管理分頁模組 -->
-      <div id="musicPage" class="page-view">
-        <div class="page-header">
-          <h2>🎵 雲端音樂庫</h2>
-          <button class="btn-back" onclick="showPage('homePage')">← 返回主頁</button>
-        </div>
-
-        <h3 style="margin-bottom: 15px; font-size: 1.1rem;">已上傳的音樂清單 (music 資料夾)</h3>
-        <ul id="uploadedMusicList" class="task-list">
-          <li class="task-item"><span>載入中...</span></li>
-        </ul>
-      </div>
-
-    </div>
-  </div>
-
-  <!-- 🎵 網頁下方的音樂播放器列 -->
-  <div class="amplitude-player-bar">
-    <div class="player-left">
-      <img src="https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&w=100&q=80" class="amplitude-album-art player-cover" id="album-art">
-      <div class="player-info">
-        <span class="amplitude-current-song-name player-title" id="currentSongTitle">尚未播放音樂</span>
-        <span class="amplitude-current-song-artist player-artist">我的音樂庫</span>
-      </div>
-    </div>
-
-    <div class="player-controls">
-      <button class="player-btn amplitude-repeat" id="repeatBtn" onclick="toggleRepeat()" title="重複播放">🔁</button>
-      <button class="player-btn amplitude-shuffle" id="shuffleBtn" onclick="playRelaxMusicShuffle()" title="隨機播放 relaxmusic">🔀</button>
-      <button class="player-btn amplitude-prev">⏮️</button>
-      <button class="player-btn amplitude-play-pause" id="play-pause">▶️</button>
-      <button class="player-btn amplitude-next">⏭️</button>
-    </div>
-
-    <div class="player-progress-container">
-      <span class="player-time amplitude-current-time">0:00</span>
-      <input type="range" class="amplitude-song-slider" step=".1"/>
-      <span class="player-time amplitude-duration-time">0:00</span>
     </div>
   </div>
 
   <script>
     const API_BASE = "https://my-web.fktimchoi.workers.dev";
-    const GITHUB_USER = "timc2046-oss";
-    const GITHUB_REPO = "my-web";
 
     let todayStr = getFormattedDate(new Date());
     let selectedDateStr = todayStr;
@@ -376,33 +350,25 @@
         youtube: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ' 
       }
     ];
+
+    // 外賣餐廳預設資料
+    let deliveryItems = [
+      {
+        id: 1,
+        name: '美味台式便當',
+        category: 'chinese',
+        phone: '2345-6789',
+        notes: '推薦：排骨飯、滷肉飯，外送速度快'
+      }
+    ];
+    let currentDeliveryCategory = 'all';
+
     let currentCategory = 'all';
     let historyRecords = {};
     let currentYear = new Date().getFullYear();
     let currentMonth = new Date().getMonth();
     const IDLE_TIMEOUT = 600000;
     let idleTimer;
-
-    // 初始化 AmplitudeJS
-    Amplitude.init({
-      "songs": [
-        {
-          "name": "尚未選擇音樂",
-          "artist": "音樂庫",
-          "album": "我的音樂庫",
-          "url": "https://upload.wikimedia.org/wikipedia/commons/b/b2/Silence.ogg",
-          "cover_art_url": "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&w=100&q=80"
-        }
-      ],
-      "callbacks": {
-        "song_change": function() {
-          let activeSong = Amplitude.getActiveSongMetadata();
-          if (activeSong && activeSong.name) {
-            document.getElementById('currentSongTitle').innerText = activeSong.name;
-          }
-        }
-      }
-    });
 
     async function init() {
       await loadCloudData();
@@ -414,6 +380,7 @@
       renderTasks();
       renderCalendar();
       renderMenu();
+      renderDelivery();
       fetchStockPrices();
       updateButlerSummary();
       startClockUpdates();
@@ -422,153 +389,6 @@
       ['mousemove', 'mousedown', 'keydown', 'touchstart', 'scroll'].forEach(evt => {
         window.addEventListener(evt, resetIdleTimer, true);
       });
-    }
-
-    // 🎵 抓取 GitHub 音樂清單（透過 Cloudflare Worker 代理，不露 Token）
-    async function fetchGitHubMusic() {
-      const listEl = document.getElementById('uploadedMusicList');
-      if (!listEl) return;
-
-      listEl.innerHTML = '<li class="task-item"><span>載入中...</span></li>';
-
-      try {
-        const response = await fetch(API_BASE + '/api/music');
-        if (!response.ok) {
-          listEl.innerHTML = '<li class="task-item"><span>目前沒有上傳任何音樂（或 music 資料夾尚未建立）</span></li>';
-          return;
-        }
-
-        const files = await response.json();
-        const mp3Files = files.filter(file => file.type === 'file' && file.name.toLowerCase().endsWith('.mp3'));
-
-        if (mp3Files.length === 0) {
-          listEl.innerHTML = '<li class="task-item"><span>目前沒有上傳任何 MP3 檔案</span></li>';
-          return;
-        }
-
-        listEl.innerHTML = '';
-        let songsArray = [];
-
-        mp3Files.forEach((file, index) => {
-          const safeUrl = encodeURI(file.download_url);
-          let originalName = decodeURIComponent(file.name);
-          originalName = originalName.replace(/^\d+_+/, "").replace(/\.mp3$/i, "");
-
-          songsArray.push({
-            "name": originalName,
-            "artist": "雲端音樂",
-            "album": "我的音樂庫",
-            "url": safeUrl,
-            "cover_art_url": "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&w=100&q=80"
-          });
-
-          const li = document.createElement('li');
-          li.className = 'task-item';
-          li.innerHTML = '<span>🎵 ' + originalName + '</span>' +
-            '<div class="task-actions">' +
-              '<button class="btn-action" onclick="playCloudSong(' + index + ')">播放</button>' +
-            '</div>';
-          listEl.appendChild(li);
-        });
-
-        if (songsArray.length > 0) {
-          Amplitude.init({
-            "songs": songsArray,
-            "callbacks": {
-              "song_change": function() {
-                let activeSong = Amplitude.getActiveSongMetadata();
-                if (activeSong && activeSong.name) {
-                  document.getElementById('currentSongTitle').innerText = activeSong.name;
-                }
-              }
-            }
-          });
-        }
-
-      } catch (err) {
-        console.error(err);
-        listEl.innerHTML = '<li class="task-item"><span>載入失敗，請檢查 Worker 設定</span></li>';
-      }
-    }
-
-    // 🔀 隨機播放 relaxmusic（透過 Cloudflare Worker 代理）
-    async function playRelaxMusicShuffle() {
-      try {
-        const res = await fetch(API_BASE + '/api/relaxmusic');
-
-        if (!res.ok) {
-          alert("找不到 relaxmusic 資料夾或 Worker 連線失敗！");
-          return;
-        }
-
-        const files = await res.json();
-        const mp3Files = files.filter(file => file.type === 'file' && file.name.toLowerCase().endsWith('.mp3'));
-
-        if (mp3Files.length === 0) {
-          alert("relaxmusic 資料夾內沒有找到 MP3 檔案！");
-          return;
-        }
-
-        let songsArray = [];
-        mp3Files.forEach(file => {
-          let originalName = decodeURIComponent(file.name);
-          originalName = originalName.replace(/^\d+_+/, "").replace(/\.mp3$/i, "");
-          const safeUrl = encodeURI(file.download_url);
-
-          songsArray.push({
-            "name": originalName,
-            "artist": "Relax 隨機播放",
-            "album": "relaxmusic",
-            "url": safeUrl,
-            "cover_art_url": "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&w=100&q=80"
-          });
-        });
-
-        // 隨機打亂順序
-        for (let i = songsArray.length - 1; i > 0; i--) {
-          const j = Math.floor(Math.random() * (i + 1));
-          [songsArray[i], songsArray[j]] = [songsArray[j], songsArray[i]];
-        }
-
-        Amplitude.stop();
-        Amplitude.init({
-          "songs": songsArray,
-          "callbacks": {
-            "song_change": function() {
-              let activeSong = Amplitude.getActiveSongMetadata();
-              if (activeSong && activeSong.name) {
-                document.getElementById('currentSongTitle').innerText = activeSong.name;
-              }
-            }
-          }
-        });
-
-        Amplitude.playSongAtIndex(0);
-      } catch (err) {
-        console.error(err);
-        alert("載入 relaxmusic 失敗！");
-      }
-    }
-
-
-    function playCloudSong(index) {
-      Amplitude.stop();
-      Amplitude.playSongAtIndex(index);
-    }
-
-    function toggleRepeat() {
-      let repeatState = Amplitude.getConfig().repeat;
-      const btn = document.getElementById('repeatBtn');
-      
-      if (!repeatState) {
-        Amplitude.setRepeat(true);
-        btn.classList.add('active-repeat');
-        btn.title = "重複播放：已開啟";
-      } else {
-        Amplitude.setRepeat(false);
-        btn.classList.remove('active-repeat');
-        btn.title = "重複播放：已關閉";
-      }
     }
 
     async function fetchStockPrices() {
@@ -600,7 +420,7 @@
       latestStockPrices.forEach(stock => {
         const isPositive = parseFloat(stock.change) >= 0;
         const changeClass = isPositive ? 'up' : 'down';
-        const sign = isPositive ? 'a' : '';
+        const sign = isPositive ? '+' : '';
         const costPrice = parseFloat(stockCosts[stock.symbol]) || 0;
         const currentPrice = parseFloat(stock.price) || 0;
 
@@ -709,6 +529,7 @@
               if (data.history && typeof data.history === 'object') historyRecords = data.history;
               if (data.recurringTasks && Array.isArray(data.recurringTasks)) recurringTasks = data.recurringTasks;
               if (data.menu && Array.isArray(data.menu)) menuItems = data.menu;
+              if (data.delivery && Array.isArray(data.delivery)) deliveryItems = data.delivery;
               if (data.stockCosts && typeof data.stockCosts === 'object') stockCosts = data.stockCosts;
             }
           }
@@ -729,10 +550,88 @@
             history: historyRecords,
             recurringTasks: recurringTasks,
             menu: menuItems,
+            delivery: deliveryItems,
             stockCosts: stockCosts
           })
         });
       } catch (err) { console.log(err); }
+    }
+
+    // 🍜 外賣餐廳管理函數
+    function addDeliveryItem() {
+      const nameInput = document.getElementById('newDeliveryName');
+      const phoneInput = document.getElementById('newDeliveryPhone');
+      const notesInput = document.getElementById('newDeliveryNotes');
+      const catSelect = document.getElementById('newDeliveryCategory');
+
+      const name = nameInput.value.trim();
+      if (!name) return;
+
+      const newItem = {
+        id: Date.now(),
+        name: name,
+        category: catSelect.value,
+        phone: phoneInput.value.trim(),
+        notes: notesInput.value.trim()
+      };
+
+      deliveryItems.push(newItem);
+      nameInput.value = '';
+      phoneInput.value = '';
+      notesInput.value = '';
+
+      renderDelivery();
+      saveCloudData();
+    }
+
+    function switchDeliveryCategory(category, btnElement) {
+      currentDeliveryCategory = category;
+      document.querySelectorAll('#deliveryPage .menu-tab-btn').forEach(btn => btn.classList.remove('active'));
+      btnElement.classList.add('active');
+      renderDelivery();
+    }
+
+    function deleteDeliveryItem(event, id) {
+      event.stopPropagation();
+      if (confirm('確定要刪除這家外賣餐廳記錄嗎？')) {
+        deliveryItems = deliveryItems.filter(item => item.id != id);
+        renderDelivery();
+        saveCloudData();
+      }
+    }
+
+    function renderDelivery() {
+      const container = document.getElementById('deliveryGridContainer');
+      container.innerHTML = '';
+
+      const catNames = { 'fastfood': '🍔 快餐 / 漢堡', 'chinese': '🥟 中式 / 港式', 'japanese': '🍣 日式 / 壽司', 'cafe': '☕ 輕食 / 咖啡' };
+      const filtered = currentDeliveryCategory === 'all' ? deliveryItems : deliveryItems.filter(item => item.category === currentDeliveryCategory);
+
+      if (filtered.length === 0) {
+        container.innerHTML = '<span style="color:var(--text-muted); grid-column: 1/-1;">目前尚無此外賣分類的餐廳紀錄，趕快在上方的輸入框新增吧！</span>';
+        return;
+      }
+
+      filtered.forEach(item => {
+        const card = document.createElement('div');
+        card.className = 'recipe-card';
+        
+        let phoneHtml = item.phone ? '<div style="font-size: 0.85rem; color: var(--accent); font-weight: 600;">📞 ' + item.phone + '</div>' : '';
+        let notesHtml = item.notes ? '<div class="recipe-notes">' + item.notes + '</div>' : '';
+
+        card.innerHTML = 
+          '<div class="recipe-header">' +
+            '<div>' +
+              '<div style="font-weight:600; font-size:1.05rem; margin-bottom:4px;">' + item.name + '</div>' +
+              '<span style="font-size:0.75rem; background:#eff6ff; color:var(--accent); padding:2px 8px; border-radius:6px;">' + (catNames[item.category] || '外賣') + '</span>' +
+            '</div>' +
+            '<button class="btn-delete" onclick="deleteDeliveryItem(event, ' + item.id + ')">🗑️</button>' +
+          '</div>' +
+          phoneHtml +
+          notesHtml;
+
+        container.appendChild(card);
+      });
     }
 
     async function addRecipeItem() {
@@ -788,7 +687,7 @@
 
     function switchRecipeCategory(category, btnElement) {
       currentCategory = category;
-      document.querySelectorAll('.menu-tab-btn').forEach(btn => btn.classList.remove('active'));
+      document.querySelectorAll('#menuPage .menu-tab-btn').forEach(btn => btn.classList.remove('active'));
       btnElement.classList.add('active');
       renderMenu();
     }
@@ -973,14 +872,11 @@
       document.getElementById('taskPage').classList.toggle('active', pageId === 'taskPage');
       document.getElementById('menuPage').classList.toggle('active', pageId === 'menuPage');
       document.getElementById('recipeDetailPage').classList.toggle('active', pageId === 'recipeDetailPage');
+      document.getElementById('deliveryPage').classList.toggle('active', pageId === 'deliveryPage');
       document.getElementById('catPage').classList.toggle('active', pageId === 'catPage');
-      document.getElementById('musicPage').classList.toggle('active', pageId === 'musicPage');
       
       if (pageId === 'taskPage') {
         selectCalendarDate(todayStr);
-      }
-      if (pageId === 'musicPage') {
-        fetchGitHubMusic();
       }
     }
 
