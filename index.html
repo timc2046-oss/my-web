@@ -47,8 +47,9 @@
     .task-main-col { flex: 1; }
     .history-frame { width: 0px; opacity: 0; overflow: hidden; background: #f8fafc; border: 1px solid var(--border-color); border-radius: 16px; padding: 0px; transition: all 0.3s ease; }
     .history-frame.open { width: 380px; opacity: 1; padding: 20px; }
-    .task-input-group { display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; }
-    .task-input-group input { flex: 1; min-width: 180px; padding: 12px 16px; border: 1px solid var(--border-color); border-radius: 10px; outline: none; }
+    .task-input-group { display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; align-items: center; }
+    .task-input-group input[type="text"] { flex: 1; min-width: 180px; padding: 12px 16px; border: 1px solid var(--border-color); border-radius: 10px; outline: none; }
+    .task-input-group input[type="file"] { padding: 8px; border: 1px solid var(--border-color); border-radius: 10px; background: white; font-size: 0.85rem; }
     .task-input-group select { padding: 12px 14px; border: 1px solid var(--border-color); border-radius: 10px; outline: none; background: white; cursor: pointer; }
     .task-input-group button { background: var(--accent); color: white; border: none; padding: 12px 20px; border-radius: 10px; font-weight: 600; cursor: pointer; }
     .task-list { list-style: none; display: flex; flex-direction: column; gap: 10px; }
@@ -76,22 +77,14 @@
     .menu-tab-btn { padding: 8px 16px; border-radius: 8px; border: 1px solid var(--border-color); background: white; cursor: pointer; font-weight: 500; }
     .menu-tab-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
     .menu-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
-    .recipe-card { background: #f8fafc; border: 1px solid var(--border-color); border-radius: 14px; padding: 18px; display: flex; flex-direction: column; gap: 10px; cursor: pointer; transition: 0.2s; }
+    .recipe-card { background: #f8fafc; border: 1px solid var(--border-color); border-radius: 14px; padding: 18px; display: flex; flex-direction: column; gap: 10px; transition: 0.2s; }
     .recipe-card:hover { transform: translateY(-3px); border-color: var(--accent); background: #eff6ff; }
     .recipe-header { display: flex; justify-content: space-between; align-items: flex-start; }
     .recipe-notes { font-size: 0.85rem; color: var(--text-muted); background: #ffffff; padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); white-space: pre-wrap; word-break: break-all; }
-
-    .recipe-detail-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; align-items: start; }
-    @media (max-width: 900px) { .recipe-detail-layout { grid-template-columns: 1fr; } }
-    .recipe-detail-left { display: flex; flex-direction: column; gap: 15px; }
-    .recipe-section-box { background: #f8fafc; border: 1px solid var(--border-color); border-radius: 14px; padding: 20px; }
-    .recipe-section-box h4 { margin-bottom: 10px; color: var(--accent); font-size: 1rem; display: flex; align-items: center; gap: 6px; }
-    .recipe-section-box p { white-space: pre-wrap; font-size: 0.95rem; line-height: 1.6; color: var(--text-main); }
-    .recipe-section-box textarea { width: 100%; height: 120px; padding: 10px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 0.95rem; outline: none; resize: vertical; background: white; }
-    .recipe-section-box input[type="text"] { width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 0.95rem; outline: none; background: white; }
     
-    .recipe-video-box { background: #000; border-radius: 14px; overflow: hidden; aspect-ratio: 16/9; display: flex; align-items: center; justify-content: center; color: #64748b; font-size: 0.9rem; }
-    .recipe-video-box iframe { width: 100%; height: 100%; border: none; }
+    /* QR Code 預覽小圖 */
+    .qr-thumb { width: 60px; height: 60px; border-radius: 8px; object-fit: cover; border: 1px solid var(--border-color); cursor: pointer; transition: 0.2s; }
+    .qr-thumb:hover { transform: scale(1.05); }
 
     .ambient-overlay { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; background: #090d16; color: #ffffff; z-index: 999; display: flex; flex-direction: column; justify-content: center; align-items: center; opacity: 0; pointer-events: none; transition: opacity 0.8s ease; padding: 40px; text-align: center; }
     .ambient-overlay.active { opacity: 1; pointer-events: auto; }
@@ -145,7 +138,7 @@
           <div class="hub-card" onclick="showPage('deliveryPage')">
             <div class="card-icon">🍜</div>
             <h3>外賣餐廳清單</h3>
-            <p>管理與快速查詢你最愛的外賣口袋名單</p>
+            <p>管理與快速查詢你最愛的外賣口袋名單（支援掃碼點餐）</p>
           </div>
           <div class="hub-card" onclick="showPage('catPage')">
             <div class="card-icon">🐱</div>
@@ -274,7 +267,7 @@
       <!-- 🍜 外賣餐廳模組頁面 -->
       <div id="deliveryPage" class="page-view">
         <div class="page-header">
-          <h2>🍜 外賣餐廳清單</h2>
+          <h2>🍜 外賣餐廳清單（支援掃碼點餐）</h2>
           <button class="btn-back" onclick="showPage('homePage')">← 返回主頁</button>
         </div>
         <div class="menu-layout">
@@ -294,17 +287,20 @@
                 <option value="japanese">日式 / 壽司</option>
                 <option value="cafe">輕食 / 咖啡</option>
               </select>
-              <!-- 新增外賣方式選擇 -->
-              <select id="newDeliveryMethod">
+              <select id="newDeliveryMethod" onchange="toggleQrUploadInput()">
                 <option value="phone">📞 電話訂購</option>
-                <option value="qrcode">📷 掃碼點餐</option>
+                <option value="qrcode" selected>📷 掃碼點餐</option>
                 <option value="app">📱 APP 下單</option>
               </select>
             </div>
+            <div class="task-input-group" id="qrUploadGroup">
+              <label style="font-size: 0.85rem; color: var(--text-muted); display: flex; align-items: center; gap: 6px;">上傳點餐 QR Code 圖片：</label>
+              <input type="file" id="newDeliveryQrFile" accept="image/*">
+            </div>
             <div class="task-input-group">
-              <input type="text" id="newDeliveryPhone" placeholder="訂購電話 / 連結說明（例如：2345-6789 或 連結網址）" style="flex:1;">
+              <input type="text" id="newDeliveryPhone" placeholder="訂購電話 / 備註資訊（例如：2345-6789）" style="flex:1;">
               <input type="text" id="newDeliveryNotes" placeholder="推薦餐點 / 備註..." style="flex:2;">
-              <button onclick="addDeliveryItem()">✨ 新增餐廳</button>
+              <button onclick="addDeliveryItem()" id="addDeliveryBtn">✨ 新增外賣餐廳</button>
             </div>
           </div>
           <div class="menu-grid" id="deliveryGridContainer"></div>
@@ -329,6 +325,8 @@
 
   <script>
     const API_BASE = "https://my-web.fktimchoi.workers.dev";
+    const GITHUB_USER = "timc2046-oss";
+    const GITHUB_REPO = "my-web";
 
     let todayStr = getFormattedDate(new Date());
     let selectedDateStr = todayStr;
@@ -357,7 +355,6 @@
       }
     ];
 
-    // 外賣餐廳預設資料（加入 method 欄位）
     let deliveryItems = [
       {
         id: 1,
@@ -365,12 +362,12 @@
         category: 'chinese',
         method: 'phone',
         phone: '2345-6789',
+        qrUrl: '',
         notes: '推薦：排骨飯、滷肉飯，外送速度快'
       }
     ];
     let currentDeliveryCategory = 'all';
 
-    let currentCategory = 'all';
     let historyRecords = {};
     let currentYear = new Date().getFullYear();
     let currentMonth = new Date().getMonth();
@@ -396,6 +393,12 @@
       ['mousemove', 'mousedown', 'keydown', 'touchstart', 'scroll'].forEach(evt => {
         window.addEventListener(evt, resetIdleTimer, true);
       });
+    }
+
+    function toggleQrUploadInput() {
+      const method = document.getElementById('newDeliveryMethod').value;
+      const group = document.getElementById('qrUploadGroup');
+      group.style.display = (method === 'qrcode') ? 'flex' : 'none';
     }
 
     async function fetchStockPrices() {
@@ -564,16 +567,57 @@
       } catch (err) { console.log(err); }
     }
 
-    // 🍜 外賣餐廳管理函數（支援方法儲存）
-    function addDeliveryItem() {
+    // 🍜 新增外賣餐廳並上傳 QR Code 到 GitHub
+    async function addDeliveryItem() {
       const nameInput = document.getElementById('newDeliveryName');
       const phoneInput = document.getElementById('newDeliveryPhone');
       const notesInput = document.getElementById('newDeliveryNotes');
       const catSelect = document.getElementById('newDeliveryCategory');
       const methodSelect = document.getElementById('newDeliveryMethod');
+      const fileInput = document.getElementById('newDeliveryQrFile');
+      const addBtn = document.getElementById('addDeliveryBtn');
 
       const name = nameInput.value.trim();
       if (!name) return;
+
+      let qrUrl = '';
+
+      // 如果選擇了掃碼點餐並且上傳了圖片
+      if (methodSelect.value === 'qrcode' && fileInput.files && fileInput.files[0]) {
+        const file = fileInput.files[0];
+        addBtn.innerText = '⏳ 正在上傳 QR Code 到 GitHub...';
+        addBtn.disabled = true;
+
+        try {
+          const base64Content = await toBase64(file);
+          const cleanBase64 = base64Content.split(',')[1];
+          const fileName = `qrcode_${Date.now()}_${file.name}`;
+          const filePath = `qrcodes/${fileName}`;
+
+          const res = await fetch(API_BASE + '/api/upload-qrcode', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              fileName: fileName,
+              content: cleanBase64,
+              path: filePath
+            })
+          });
+
+          if (res.ok) {
+            // 組成 raw 網址以供顯示
+            qrUrl = `https://raw.githubusercontent.com/${GITHUB_USER}/${GITHUB_REPO}/main/${filePath}`;
+          } else {
+            alert('QR Code 上傳到 GitHub 失敗！');
+          }
+        } catch (e) {
+          console.error(e);
+          alert('上傳發生錯誤');
+        }
+
+        addBtn.innerText = '✨ 新增外賣餐廳';
+        addBtn.disabled = false;
+      }
 
       const newItem = {
         id: Date.now(),
@@ -581,6 +625,7 @@
         category: catSelect.value,
         method: methodSelect.value,
         phone: phoneInput.value.trim(),
+        qrUrl: qrUrl,
         notes: notesInput.value.trim()
       };
 
@@ -588,9 +633,20 @@
       nameInput.value = '';
       phoneInput.value = '';
       notesInput.value = '';
+      fileInput.value = '';
 
       renderDelivery();
       saveCloudData();
+    }
+
+    // 輔助函數：將檔案轉為 Base64
+    function toBase64(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = error => reject(error);
+      });
     }
 
     function switchDeliveryCategory(category, btnElement) {
@@ -632,6 +688,7 @@
         const methodColor = methodColors[item.method] || '#3b82f6';
 
         let infoHtml = item.phone ? '<div style="font-size: 0.85rem; color: var(--text-main); font-weight: 600;">資訊：' + item.phone + '</div>' : '';
+        let qrHtml = item.qrUrl ? '<div style="margin-top: 6px;"><a href="' + item.qrUrl + '" target="_blank" title="點擊檢視大圖"><img src="' + item.qrUrl + '" class="qr-thumb"></a></div>' : '';
         let notesHtml = item.notes ? '<div class="recipe-notes">' + item.notes + '</div>' : '';
 
         card.innerHTML = 
@@ -646,6 +703,7 @@
             '<button class="btn-delete" onclick="deleteDeliveryItem(event, ' + item.id + ')">🗑️</button>' +
           '</div>' +
           infoHtml +
+          qrHtml +
           notesHtml;
 
         container.appendChild(card);
@@ -1071,7 +1129,7 @@
         const item = document.createElement('div');
         item.style.display = 'flex';
         item.style.justifyContent = 'space-between';
-        item.style.alignItems.value = 'center';
+        item.style.alignItems = 'center';
         item.style.padding = '6px 10px';
         item.style.background = 'white';
         item.style.borderRadius = '6px';
@@ -1090,7 +1148,7 @@
     function speakButlerSummary() {
       const greetingText = document.getElementById('greetingText').innerText;
       const butlerSummary = document.getElementById('butlerSummary').innerText;
-      const text = greetingText + '。' + butlerSummary;
+      const text = greetingText + ' + ' + butlerSummary;
       const utterance = new SpeechSynthesisUtterance(text);
       utterance.lang = 'zh-TW';
       window.speechSynthesis.speak(utterance);
