@@ -368,6 +368,7 @@
       }
     ];
     let currentDeliveryCategory = 'all';
+	let currentRecipeCategory = 'all'; // 💡 補上這行宣告
 
     let historyRecords = {};
     let currentYear = new Date().getFullYear();
@@ -762,7 +763,7 @@
     }
 
     function switchRecipeCategory(category, btnElement) {
-      currentCategory = category;
+      currentRecipeCategory = category; // 修正變數名稱
       document.querySelectorAll('#menuPage .menu-tab-btn').forEach(btn => btn.classList.remove('active'));
       btnElement.classList.add('active');
       renderMenu();
@@ -873,7 +874,8 @@
       container.innerHTML = '';
 
       const catNames = { 'main': '🍖 主菜料理', 'soup': '🍲 湯品 / 鍋物', 'snack': '🧆 點心 / 小吃', 'other': '✨ 其他靈感' };
-      const filtered = currentCategory === 'all' ? menuItems : menuItems.filter(item => item.category === currentCategory);
+      // 修正過濾變數
+      const filtered = currentRecipeCategory === 'all' ? menuItems : menuItems.filter(item => item.category === currentRecipeCategory);
 
       if (filtered.length === 0) {
         container.innerHTML = '<span style="color:var(--text-muted); grid-column: 1/-1;">目前尚無此分類的食譜紀錄，趕快在上方的輸入框新增吧！</span>';
