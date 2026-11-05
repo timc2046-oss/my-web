@@ -954,6 +954,13 @@
       if (pageId === 'taskPage') {
         selectCalendarDate(todayStr);
       }
+      
+      // 💡 點擊進入外賣頁面時，自動重新向雲端同步最新資料
+      if (pageId === 'deliveryPage') {
+        loadCloudData().then(() => {
+          renderDelivery();
+        });
+      }
     }
 
     function toggleHistoryFrame() {
