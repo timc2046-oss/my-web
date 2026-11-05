@@ -377,6 +377,11 @@
 
     async function init() {
       await loadCloudData();
+      
+      // 💡 確保雲端資料載入後立即渲染食譜與外賣清單
+      renderMenu();
+      renderDelivery();
+
       if (!historyRecords[todayStr]) {
         historyRecords[todayStr] = [];
       }
@@ -384,9 +389,7 @@
       updateGreeting();
       renderTasks();
       renderCalendar();
-      renderMenu();
-      renderDelivery();
-      fetchStockPrices();
+      fetchStockPrices(); // 確保這裡有正確呼叫美股 ETF 抓取
       updateButlerSummary();
       startClockUpdates();
       resetIdleTimer();
