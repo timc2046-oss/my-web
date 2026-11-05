@@ -689,7 +689,7 @@
 
         let infoHtml = item.phone ? '<div style="font-size: 0.85rem; color: var(--text-main); font-weight: 600;">資訊：' + item.phone + '</div>' : '';
         let qrHtml = item.qrUrl ? '<div style="margin-top: 6px;"><a href="' + item.qrUrl + '" target="_blank" title="點擊檢視大圖"><img src="' + item.qrUrl + '" class="qr-thumb"></a></div>' : '';
-        let notesHtml = item.notes ? '<div class="recipe-notes">' + item.notes + '</div>' : '';
+        let notesHtml = item.notes ? '<div class="recipe-notes">' + linkify(item.notes) + '</div>' : '';
 
         card.innerHTML = 
           '<div class="recipe-header">' +
@@ -759,6 +759,15 @@
 
       renderMenu();
       saveCloudData();
+    }
+	
+	function linkify(text) {
+      if (!text) return '';
+      // 自動偵測 http 或 https 開頭的網址並轉為超連結
+      const urlRegex = /(https?:\/\/[^\s]+)/g;
+      return text.replace(urlRegex, function(url) {
+        return '<a href="' + url + '" target="_blank" style="color: var(--accent); text-decoration: underline;">' + url + '</a>';
+      });
     }
 
     function switchRecipeCategory(category, btnElement) {
