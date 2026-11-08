@@ -45,10 +45,12 @@
     
     .task-layout { display: flex; gap: 20px; align-items: flex-start; }
     .task-main-col { flex: 1; }
-    .history-frame { width: 0px; opacity: 0; overflow: hidden; background: #f8fafc; border: 1px solid var(--border-color); border-radius: 16px; padding: 0px; transition: all 0.3s ease; }
-    .history-frame.open { width: 380px; opacity: 1; padding: 20px; }
+    /* 預設直接展開過往記錄日曆 */
+    .history-frame { width: 380px; opacity: 1; overflow: hidden; background: #f8fafc; border: 1px solid var(--border-color); border-radius: 16px; padding: 20px; transition: all 0.3s ease; }
+    .history-frame.collapsed { width: 0px; opacity: 0; padding: 0px; }
+    
     .task-input-group { display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; align-items: center; }
-    .task-input-group input[type="text"] { flex: 1; min-width: 180px; padding: 12px 16px; border: 1px solid var(--border-color); border-radius: 10px; outline: none; }
+    .task-input-group input[type="text"] { flex: 1; min-width: 150px; padding: 12px 16px; border: 1px solid var(--border-color); border-radius: 10px; outline: none; }
     .task-input-group input[type="file"] { padding: 8px; border: 1px solid var(--border-color); border-radius: 10px; background: white; font-size: 0.85rem; }
     .task-input-group select { padding: 12px 14px; border: 1px solid var(--border-color); border-radius: 10px; outline: none; background: white; cursor: pointer; }
     .task-input-group button { background: var(--accent); color: white; border: none; padding: 12px 20px; border-radius: 10px; font-weight: 600; cursor: pointer; }
@@ -162,7 +164,7 @@
           <div class="task-main-col">
             <div class="task-input-group" id="taskInputGroup">
               <input type="text" id="newTaskInput" placeholder="輸入新的任務...">
-              <select id="taskRepeatSelect">
+              <select id="taskRepeatSelect" onchange="toggleRepeatExtraInputs()">
                 <option value="daily">每天重複</option>
                 <option value="1">每週一</option>
                 <option value="2">每週二</option>
@@ -171,11 +173,16 @@
                 <option value="5">每週五</option>
                 <option value="6">每週六</option>
                 <option value="0">每週日</option>
+                <option value="interval">每隔 X 天</option>
+                <option value="monthly">每月指定日</option>
               </select>
+              <input type="number" id="taskIntervalInput" placeholder="幾天" min="1" style="width: 70px; display: none; padding: 10px; border: 1px solid var(--border-color); border-radius: 10px;" value="2">
+              <input type="number" id="taskMonthlyInput" placeholder="幾號" min="1" max="31" style="width: 70px; display: none; padding: 10px; border: 1px solid var(--border-color); border-radius: 10px;" value="1">
               <button onclick="addTask()">新增任務</button>
             </div>
             <ul class="task-list" id="taskListContainer"></ul>
           </div>
+          <!-- 預設帶有展開狀態 -->
           <div class="history-frame" id="historyFrame">
             <div class="calendar-header">
               <button onclick="changeMonth(-1)" style="border:none; background:none; cursor:pointer; font-size:1rem;">◀</button>
@@ -368,7 +375,7 @@
       }
     ];
     let currentDeliveryCategory = 'all';
-	let currentRecipeCategory = 'all'; // 💡 補上這行宣告
+    let currentRecipeCategory = 'all';
 
     let historyRecords = {};
     let currentYear = new Date().getFullYear();
@@ -379,7 +386,6 @@
     async function init() {
       await loadCloudData();
       
-      // 💡 確保雲端資料載入後立即渲染食譜與外賣清單
       renderMenu();
       renderDelivery();
 
@@ -390,7 +396,7 @@
       updateGreeting();
       renderTasks();
       renderCalendar();
-      fetchStockPrices(); // 確保這裡有正確呼叫美股 ETF 抓取
+      fetchStockPrices();
       updateButlerSummary();
       startClockUpdates();
       resetIdleTimer();
@@ -404,6 +410,12 @@
       const method = document.getElementById('newDeliveryMethod').value;
       const group = document.getElementById('qrUploadGroup');
       group.style.display = (method === 'qrcode') ? 'flex' : 'none';
+    }
+
+    function toggleRepeatExtraInputs() {
+      const val = document.getElementById('taskRepeatSelect').value;
+      document.getElementById('taskIntervalInput').style.display = (val === 'interval') ? 'inline-block' : 'none';
+      document.getElementById('taskMonthlyInput').style.display = (val === 'monthly') ? 'inline-block' : 'none';
     }
 
     async function fetchStockPrices() {
@@ -492,6 +504,7 @@
     function generateTodayTasks() {
       const now = new Date();
       const dayOfWeek = now.getDay();
+      const dayOfMonth = now.getDate();
       const yesterday = new Date(now);
       yesterday.setDate(yesterday.getDate() - 1);
       const yesterdayStr = getFormattedDate(yesterday);
@@ -504,8 +517,25 @@
       recurringTasks.forEach(rTask => {
         const isDaily = (rTask.repeat === 'daily');
         const isMatchedDay = (rTask.repeat === String(dayOfWeek));
+        const isMonthly = (rTask.repeat === 'monthly' && parseInt(rTask.monthlyDay) === dayOfMonth);
+        
+        let isInterval = false;
+        if (rTask.repeat === 'interval') {
+          const intervalDays = parseInt(rTask.intervalDays) || 1;
+          if (!rTask.lastGeneratedDate) {
+            rTask.lastGeneratedDate = todayStr;
+            isInterval = true;
+          } else {
+            const diffTime = new Date(todayStr) - new Date(rTask.lastGeneratedDate);
+            const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+            if (diffDays >= intervalDays) {
+              rTask.lastGeneratedDate = todayStr;
+              isInterval = true;
+            }
+          }
+        }
 
-        if (isDaily || isMatchedDay) {
+        if (isDaily || isMatchedDay || isMonthly || isInterval) {
           const exists = todayTasks.some(t => t.text === rTask.text);
           if (!exists) {
             todayTasks.push({
@@ -564,8 +594,8 @@
             tasks: historyRecords[todayStr] || [], 
             history: historyRecords,
             recurringTasks: recurringTasks,
-            menu: menuItems,         // 確保食譜資料不會被洗掉
-            delivery: deliveryItems, // 確保外賣清單資料不會被洗掉
+            menu: menuItems,
+            delivery: deliveryItems,
             stockCosts: stockCosts
           })
         });
@@ -763,7 +793,7 @@
     }
 
     function switchRecipeCategory(category, btnElement) {
-      currentRecipeCategory = category; // 修正變數名稱
+      currentRecipeCategory = category;
       document.querySelectorAll('#menuPage .menu-tab-btn').forEach(btn => btn.classList.remove('active'));
       btnElement.classList.add('active');
       renderMenu();
@@ -874,7 +904,6 @@
       container.innerHTML = '';
 
       const catNames = { 'main': '🍖 主菜料理', 'soup': '🍲 湯品 / 鍋物', 'snack': '🧆 點心 / 小吃', 'other': '✨ 其他靈感' };
-      // 修正過濾變數
       const filtered = currentRecipeCategory === 'all' ? menuItems : menuItems.filter(item => item.category === currentRecipeCategory);
 
       if (filtered.length === 0) {
@@ -973,7 +1002,8 @@
     }
 
     function toggleHistoryFrame() {
-      document.getElementById('historyFrame').classList.toggle('open');
+      // 切換展開與收合狀態
+      document.getElementById('historyFrame').classList.toggle('collapsed');
     }
 
     function renderTasks() {
@@ -1053,11 +1083,30 @@
 
       const repeatRule = repeatSelect.value;
       const newRecTask = { id: Date.now(), text: text, repeat: repeatRule };
+
+      if (repeatRule === 'interval') {
+        newRecTask.intervalDays = document.getElementById('taskIntervalInput').value || 2;
+        newRecTask.lastGeneratedDate = todayStr;
+      } else if (repeatRule === 'monthly') {
+        newRecTask.monthlyDay = document.getElementById('taskMonthlyInput').value || 1;
+      }
+
       recurringTasks.push(newRecTask);
 
       const now = new Date();
       const dayOfWeek = now.getDay();
+      const dayOfMonth = now.getDate();
+      
+      let shouldAddToday = false;
       if (repeatRule === 'daily' || repeatRule === String(dayOfWeek)) {
+        shouldAddToday = true;
+      } else if (repeatRule === 'interval') {
+        shouldAddToday = true;
+      } else if (repeatRule === 'monthly' && parseInt(newRecTask.monthlyDay) === dayOfMonth) {
+        shouldAddToday = true;
+      }
+
+      if (shouldAddToday) {
         if (!historyRecords[todayStr]) historyRecords[todayStr] = [];
         historyRecords[todayStr].push({
           id: 'rec_' + newRecTask.id + '_' + todayStr,
@@ -1067,6 +1116,8 @@
       }
       
       input.value = '';
+      document.getElementById('taskIntervalInput').value = '2';
+      document.getElementById('taskMonthlyInput').value = '1';
       renderTasks();
     }
 
