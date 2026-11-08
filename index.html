@@ -45,7 +45,6 @@
     
     .task-layout { display: flex; gap: 20px; align-items: flex-start; }
     .task-main-col { flex: 1; }
-    /* 預設直接展開過往記錄日曆 */
     .history-frame { width: 380px; opacity: 1; overflow: hidden; background: #f8fafc; border: 1px solid var(--border-color); border-radius: 16px; padding: 20px; transition: all 0.3s ease; }
     .history-frame.collapsed { width: 0px; opacity: 0; padding: 0px; }
     
@@ -92,6 +91,34 @@
     .ambient-clock { font-size: 12rem; font-weight: 600; letter-spacing: -2px; margin-bottom: 10px; color: #fff; }
     .ambient-date { font-size: 3rem; color: #94a3b8; margin-bottom: 15px; }
     .ambient-progress { font-size: 1.5rem; color: #10b981; background: rgba(16, 185, 129, 0.1); padding: 8px 24px; border-radius: 20px; border: 1px solid rgba(16, 185, 129, 0.3); margin-bottom: 20px; }
+
+    /* 已預約任務檢視視窗 */
+    .scheduled-modal-overlay {
+      position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+      background: rgba(15, 23, 42, 0.5); backdrop-filter: blur(4px);
+      z-index: 900; display: none; justify-content: center; align-items: center; padding: 20px;
+    }
+    .scheduled-modal-overlay.active { display: flex; }
+    .scheduled-modal-card {
+      background: #ffffff; border-radius: 20px; width: 100%; max-width: 550px;
+      max-height: 80vh; display: flex; flex-direction: column; padding: 25px;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.15);
+    }
+    .scheduled-list {
+      overflow-y: auto; display: flex; flex-direction: column; gap: 10px; margin-top: 15px; padding-right: 4px;
+    }
+    .scheduled-item {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 12px 16px; background: #f8fafc; border: 1px solid var(--border-color); border-radius: 12px;
+    }
+    .badge-next-date {
+      font-size: 0.78rem; background: #dcfce7; color: #16a34a; font-weight: 600;
+      padding: 3px 8px; border-radius: 6px; display: inline-block; margin-top: 4px;
+    }
+    .badge-rule {
+      font-size: 0.78rem; background: #eff6ff; color: var(--accent); font-weight: 600;
+      padding: 3px 8px; border-radius: 6px; display: inline-block; margin-top: 4px; margin-right: 6px;
+    }
   </style>
 </head>
 <body>
@@ -156,6 +183,7 @@
         <div class="page-header">
           <h2 id="taskPageTitle">✅ 每日任務 Task List (今天)</h2>
           <div style="display: flex; gap: 10px;">
+            <button class="btn-back" onclick="openScheduledModal()" style="background:#f0fdf4; color:#16a34a;">🔁 已預約任務</button>
             <button class="btn-back" onclick="toggleHistoryFrame()" style="background:#eff6ff; color:var(--accent);">📅 過往記錄</button>
             <button class="btn-back" onclick="showPage('homePage')">← 返回主頁</button>
           </div>
@@ -182,7 +210,6 @@
             </div>
             <ul class="task-list" id="taskListContainer"></ul>
           </div>
-          <!-- 預設帶有展開狀態 -->
           <div class="history-frame" id="historyFrame">
             <div class="calendar-header">
               <button onclick="changeMonth(-1)" style="border:none; background:none; cursor:pointer; font-size:1rem;">◀</button>
@@ -328,6 +355,17 @@
         </div>
       </div>
 
+    </div>
+  </div>
+
+  <!-- 🔁 已預約任務檢視視窗 -->
+  <div class="scheduled-modal-overlay" id="scheduledModal" onclick="closeScheduledModal(event)">
+    <div class="scheduled-modal-card" onclick="event.stopPropagation()">
+      <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">
+        <h3>🔁 已預約的重複任務排程</h3>
+        <button class="btn-back" onclick="closeScheduledModal()">✕ 關閉</button>
+      </div>
+      <div class="scheduled-list" id="scheduledListContainer"></div>
     </div>
   </div>
 
@@ -602,6 +640,14 @@
       } catch (err) { console.log(err); }
     }
 
+    function linkify(text) {
+      if (!text) return '';
+      const urlRegex = /(https?:\/\/[^\s]+)/g;
+      return text.replace(urlRegex, function(url) {
+        return '<a href="' + url + '" target="_blank" style="color: var(--accent); text-decoration: underline;">' + url + '</a>';
+      });
+    }
+
     async function addDeliveryItem() {
       const nameInput = document.getElementById('newDeliveryName');
       const phoneInput = document.getElementById('newDeliveryPhone');
@@ -720,7 +766,7 @@
 
         let infoHtml = item.phone ? '<div style="font-size: 0.85rem; color: var(--text-main); font-weight: 600;">資訊：' + item.phone + '</div>' : '';
         let qrHtml = item.qrUrl ? '<div style="margin-top: 6px;"><a href="' + item.qrUrl + '" target="_blank" title="點擊檢視大圖"><img src="' + item.qrUrl + '" class="qr-thumb"></a></div>' : '';
-        let notesHtml = item.notes ? '<div class="recipe-notes">' + item.notes + '</div>' : '';
+        let notesHtml = item.notes ? '<div class="recipe-notes">' + linkify(item.notes) + '</div>' : '';
 
         card.innerHTML = 
           '<div class="recipe-header">' +
@@ -1002,7 +1048,6 @@
     }
 
     function toggleHistoryFrame() {
-      // 切換展開與收合狀態
       document.getElementById('historyFrame').classList.toggle('collapsed');
     }
 
@@ -1127,6 +1172,119 @@
         historyRecords[todayStr] = historyRecords[todayStr].filter(t => t.id != id);
         renderTasks();
       }
+    }
+
+    // 🔁 開啟/關閉已預約任務視窗
+    function openScheduledModal() {
+      renderScheduledTasks();
+      document.getElementById('scheduledModal').classList.add('active');
+    }
+
+    function closeScheduledModal(event) {
+      if (!event || event.target.id === 'scheduledModal') {
+        document.getElementById('scheduledModal').classList.remove('active');
+      }
+    }
+
+    // 刪除預約排程規則
+    function deleteScheduledTask(id) {
+      if (confirm('確定要取消這個任務的自動重複排程嗎？（不會影響今天已生成的任務）')) {
+        recurringTasks = recurringTasks.filter(t => t.id != id);
+        saveCloudData();
+        renderScheduledTasks();
+      }
+    }
+
+    // 計算每個預約任務的「規則說明」與「下一次自動生成日期」
+    function getNextOccurrenceInfo(rTask) {
+      const now = new Date();
+      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      const tomorrow = new Date(today);
+      tomorrow.setDate(today.getDate() + 1);
+
+      const weekNames = ['日', '一', '二', '三', '四', '五', '六'];
+      let ruleText = '';
+      let nextDate = new Date(tomorrow);
+
+      if (rTask.repeat === 'daily') {
+        ruleText = '每天重複';
+        nextDate = tomorrow;
+      } else if (['0', '1', '2', '3', '4', '5', '6'].includes(String(rTask.repeat))) {
+        const targetDay = parseInt(rTask.repeat);
+        ruleText = '每週' + weekNames[targetDay];
+        let diff = (targetDay - tomorrow.getDay() + 7) % 7;
+        nextDate.setDate(tomorrow.getDate() + diff);
+      } else if (rTask.repeat === 'interval') {
+        const interval = parseInt(rTask.intervalDays) || 1;
+        ruleText = '每隔 ' + interval + ' 天';
+        if (rTask.lastGeneratedDate) {
+          const parts = rTask.lastGeneratedDate.split('-');
+          const lastDate = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+          nextDate = new Date(lastDate);
+          nextDate.setDate(lastDate.getDate() + interval);
+          if (nextDate <= today) {
+            nextDate = tomorrow;
+          }
+        } else {
+          nextDate = today;
+        }
+      } else if (rTask.repeat === 'monthly') {
+        const targetDate = parseInt(rTask.monthlyDay) || 1;
+        ruleText = '每月 ' + targetDate + ' 號';
+        let candidate = new Date(today.getFullYear(), today.getMonth(), targetDate);
+        if (candidate.getMonth() !== today.getMonth()) {
+          candidate = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+        }
+        if (candidate >= tomorrow) {
+          nextDate = candidate;
+        } else {
+          let nextMonthCandidate = new Date(today.getFullYear(), today.getMonth() + 1, targetDate);
+          if (nextMonthCandidate.getMonth() !== (today.getMonth() + 1) % 12) {
+            nextMonthCandidate = new Date(today.getFullYear(), today.getMonth() + 2, 0);
+          }
+          nextDate = nextMonthCandidate;
+        }
+      }
+
+      const nextStr = getFormattedDate(nextDate);
+      const isTomorrow = (nextStr === getFormattedDate(tomorrow));
+      const isToday = (nextStr === getFormattedDate(today));
+      
+      let labelSuffix = '';
+      if (isToday) labelSuffix = ' (今天)';
+      else if (isTomorrow) labelSuffix = ' (明天)';
+
+      return {
+        ruleText: ruleText,
+        nextDateStr: nextStr + labelSuffix
+      };
+    }
+
+    // 渲染已預約任務列表
+    function renderScheduledTasks() {
+      const container = document.getElementById('scheduledListContainer');
+      container.innerHTML = '';
+
+      if (!recurringTasks || recurringTasks.length === 0) {
+        container.innerHTML = '<div style="color: var(--text-muted); text-align: center; padding: 20px;">目前沒有任何已預約的重複任務</div>';
+        return;
+      }
+
+      recurringTasks.forEach(rTask => {
+        const info = getNextOccurrenceInfo(rTask);
+        const item = document.createElement('div');
+        item.className = 'scheduled-item';
+        item.innerHTML = 
+          '<div>' +
+            '<div style="font-weight: 600; font-size: 1rem; color: var(--text-main);">' + rTask.text + '</div>' +
+            '<div>' +
+              '<span class="badge-rule">🔄 ' + info.ruleText + '</span>' +
+              '<span class="badge-next-date">📅 下次生成：' + info.nextDateStr + '</span>' +
+            '</div>' +
+          '</div>' +
+          '<button class="btn-delete" title="取消此預約排程" onclick="deleteScheduledTask(' + rTask.id + ')">🗑️</button>';
+        container.appendChild(item);
+      });
     }
 
     function renderCalendar() {
