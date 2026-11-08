@@ -564,8 +564,8 @@
             tasks: historyRecords[todayStr] || [], 
             history: historyRecords,
             recurringTasks: recurringTasks,
-            menu: menuItems,
-            delivery: deliveryItems,
+            menu: menuItems,         // 確保食譜資料不會被洗掉
+            delivery: deliveryItems, // 確保外賣清單資料不會被洗掉
             stockCosts: stockCosts
           })
         });
