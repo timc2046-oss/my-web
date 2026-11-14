@@ -119,6 +119,26 @@
       font-size: 0.78rem; background: #eff6ff; color: var(--accent); font-weight: 600;
       padding: 3px 8px; border-radius: 6px; display: inline-block; margin-top: 4px; margin-right: 6px;
     }
+
+    /* 居家清潔日誌樣式 */
+    .clean-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 18px; margin-top: 10px; }
+    .clean-card { background: #ffffff; border: 1px solid var(--border-color); border-radius: 16px; padding: 20px; display: flex; flex-direction: column; justify-content: space-between; gap: 14px; transition: 0.25s; position: relative; }
+    .clean-card:hover { transform: translateY(-3px); box-shadow: 0 12px 20px -8px rgba(0,0,0,0.08); }
+    .clean-card.status-good { border-left: 5px solid var(--success); }
+    .clean-card.status-warn { border-left: 5px solid #f59e0b; }
+    .clean-card.status-overdue { border-left: 5px solid var(--danger); background: #fef2f230; }
+    .clean-card-top { display: flex; justify-content: space-between; align-items: flex-start; }
+    .clean-item-title { font-size: 1.1rem; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+    .clean-item-freq { font-size: 0.75rem; color: var(--text-muted); background: #f1f5f9; padding: 3px 8px; border-radius: 6px; margin-top: 6px; display: inline-block; }
+    .clean-status-box { display: flex; flex-direction: column; gap: 4px; }
+    .clean-status-badge { display: inline-flex; align-items: center; gap: 6px; font-size: 0.85rem; font-weight: 600; padding: 5px 10px; border-radius: 8px; width: fit-content; }
+    .clean-badge-good { background: #dcfce7; color: #15803d; }
+    .clean-badge-warn { background: #fef3c7; color: #b45309; }
+    .clean-badge-overdue { background: #fee2e2; color: #b91c1c; }
+    .clean-date-sub { font-size: 0.8rem; color: var(--text-muted); }
+    .btn-clean-done { width: 100%; padding: 10px; border-radius: 10px; border: 1px solid var(--border-color); background: #f8fafc; color: var(--text-main); font-weight: 600; font-size: 0.95rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; transition: 0.2s; }
+    .btn-clean-done:hover { background: var(--success); color: white; border-color: var(--success); }
+    .btn-clean-done:active { transform: scale(0.98); }
   </style>
 </head>
 <body>
@@ -169,6 +189,11 @@
             <div class="card-icon">🍜</div>
             <h3>外賣餐廳清單</h3>
             <p>管理與快速查詢你最愛的外賣口袋名單（支援掃碼點餐）</p>
+          </div>
+          <div class="hub-card" onclick="showPage('cleaningPage')">
+            <div class="card-icon">🧹</div>
+            <h3>居家清潔日誌</h3>
+            <p>追蹤地板、電視、電腦、窗台等清潔日期與提醒</p>
           </div>
           <div class="hub-card" onclick="showPage('catPage')">
             <div class="card-icon">🐱</div>
@@ -355,6 +380,25 @@
         </div>
       </div>
 
+      <!-- 🧹 居家清潔日誌頁面 -->
+      <div id="cleaningPage" class="page-view">
+        <div class="page-header">
+          <h2>🧹 居家清潔日誌</h2>
+          <button class="btn-back" onclick="showPage('homePage')">← 返回主頁</button>
+        </div>
+        <div class="task-input-group">
+          <input type="text" id="newCleanItemName" placeholder="輸入清潔物品名稱（例如：冷氣濾網、書桌、窗台...）">
+          <select id="newCleanItemFreq">
+            <option value="3">建議每 3 天清</option>
+            <option value="7" selected>建議每 7 天清</option>
+            <option value="14">建議每 14 天清</option>
+            <option value="30">建議每 30 天清</option>
+          </select>
+          <button onclick="addCleaningItem()" id="addCleanBtn">✨ 新增物品</button>
+        </div>
+        <div class="clean-grid" id="cleanGridContainer"></div>
+      </div>
+
     </div>
   </div>
 
@@ -412,6 +456,13 @@
         notes: '推薦：排骨飯、滷肉飯，外送速度快'
       }
     ];
+    let cleaningItems = [
+      { id: 1, name: '💻 電腦主機與鍵盤', freqDays: 7, lastCleaned: getFormattedDate(new Date()) },
+      { id: 2, name: '📺 客廳電視螢幕', freqDays: 7, lastCleaned: getFormattedDate(new Date()) },
+      { id: 3, name: '🪵 全屋地板吸塵拖地', freqDays: 4, lastCleaned: getFormattedDate(new Date()) },
+      { id: 4, name: '🪟 臥室與客廳窗台', freqDays: 14, lastCleaned: getFormattedDate(new Date()) }
+    ];
+
     let currentDeliveryCategory = 'all';
     let currentRecipeCategory = 'all';
 
@@ -426,6 +477,7 @@
       
       renderMenu();
       renderDelivery();
+      renderCleaning();
 
       if (!historyRecords[todayStr]) {
         historyRecords[todayStr] = [];
@@ -613,6 +665,7 @@
               if (data.recurringTasks && Array.isArray(data.recurringTasks)) recurringTasks = data.recurringTasks;
               if (data.menu && Array.isArray(data.menu)) menuItems = data.menu;
               if (data.delivery && Array.isArray(data.delivery)) deliveryItems = data.delivery;
+              if (data.cleaning && Array.isArray(data.cleaning)) cleaningItems = data.cleaning;
               if (data.stockCosts && typeof data.stockCosts === 'object') stockCosts = data.stockCosts;
             }
           }
@@ -634,6 +687,7 @@
             recurringTasks: recurringTasks,
             menu: menuItems,
             delivery: deliveryItems,
+            cleaning: cleaningItems,
             stockCosts: stockCosts
           })
         });
@@ -1035,6 +1089,7 @@
       document.getElementById('recipeDetailPage').classList.toggle('active', pageId === 'recipeDetailPage');
       document.getElementById('deliveryPage').classList.toggle('active', pageId === 'deliveryPage');
       document.getElementById('catPage').classList.toggle('active', pageId === 'catPage');
+      document.getElementById('cleaningPage').classList.toggle('active', pageId === 'cleaningPage');
       
       if (pageId === 'taskPage') {
         selectCalendarDate(todayStr);
@@ -1044,6 +1099,9 @@
       }
       if (pageId === 'deliveryPage') {
         renderDelivery();
+      }
+      if (pageId === 'cleaningPage') {
+        renderCleaning();
       }
     }
 
@@ -1377,6 +1435,116 @@
       const utterance = new SpeechSynthesisUtterance(text);
       utterance.lang = 'zh-TW';
       window.speechSynthesis.speak(utterance);
+    }
+
+
+    // 🧹 居家清潔日誌邏輯
+    function completeCleaningItem(id) {
+      const today = getFormattedDate(new Date());
+      cleaningItems = cleaningItems.map(item =>
+        item.id == id ? Object.assign({}, item, { lastCleaned: today }) : item
+      );
+      renderCleaning();
+      saveCloudData();
+    }
+
+    async function addCleaningItem() {
+      const nameInput = document.getElementById('newCleanItemName');
+      const freqSelect = document.getElementById('newCleanItemFreq');
+      const addBtn = document.getElementById('addCleanBtn');
+      const rawName = nameInput.value.trim();
+      if (!rawName) return;
+
+      addBtn.innerText = '🤖 AI 正在生成圖示...';
+      addBtn.disabled = true;
+
+      let matchedEmoji = '✨';
+      try {
+        const res = await fetch(API_BASE + '/api/ai-emoji', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text: rawName })
+        });
+        const textData = await res.text();
+        const data = JSON.parse(textData);
+        if (data.emoji) matchedEmoji = data.emoji;
+      } catch (e) {
+        console.log('AI 圖示請求失敗', e);
+      }
+
+      cleaningItems.unshift({
+        id: Date.now(),
+        name: matchedEmoji + ' ' + rawName,
+        freqDays: parseInt(freqSelect.value) || 7,
+        lastCleaned: getFormattedDate(new Date())
+      });
+
+      nameInput.value = '';
+      addBtn.innerText = '✨ 新增物品';
+      addBtn.disabled = false;
+
+      renderCleaning();
+      saveCloudData();
+    }
+
+    function deleteCleaningItem(id) {
+      if (confirm('確定要刪除這個清潔項目嗎？')) {
+        cleaningItems = cleaningItems.filter(item => item.id != id);
+        renderCleaning();
+        saveCloudData();
+      }
+    }
+
+    function renderCleaning() {
+      const container = document.getElementById('cleanGridContainer');
+      if (!container) return;
+      container.innerHTML = '';
+
+      if (!cleaningItems || cleaningItems.length === 0) {
+        container.innerHTML = '<span style="color:var(--text-muted); grid-column: 1/-1;">目前尚無清潔項目紀錄，趕快在上方的輸入框新增吧！</span>';
+        return;
+      }
+
+      const now = new Date();
+      const todayMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+      cleaningItems.forEach(item => {
+        const parts = (item.lastCleaned || getFormattedDate(now)).split('-');
+        const lastDate = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+        const diffDays = Math.max(0, Math.floor((todayMidnight - lastDate) / (1000 * 60 * 60 * 24)));
+
+        let statusClass = 'status-good';
+        let badgeClass = 'clean-badge-good';
+        let statusText = diffDays === 0 ? '🟢 今天剛剛清理！' : '🟢 ' + diffDays + ' 天前清理';
+
+        if (diffDays >= item.freqDays) {
+          statusClass = 'status-overdue';
+          badgeClass = 'clean-badge-overdue';
+          statusText = '🔴 已過 ' + diffDays + ' 天（該清理囉）';
+        } else if (diffDays >= item.freqDays * 0.7) {
+          statusClass = 'status-warn';
+          badgeClass = 'clean-badge-warn';
+          statusText = '🟡 ' + diffDays + ' 天前清理（快到期）';
+        }
+
+        const card = document.createElement('div');
+        card.className = 'clean-card ' + statusClass;
+        card.innerHTML =
+          '<div class="clean-card-top">' +
+            '<div>' +
+              '<div class="clean-item-title">' + item.name + '</div>' +
+              '<span class="clean-item-freq">建議每 ' + item.freqDays + ' 天清理</span>' +
+            '</div>' +
+            '<button class="btn-delete" onclick="deleteCleaningItem(' + item.id + ')" title="刪除項目">🗑️</button>' +
+          '</div>' +
+          '<div class="clean-status-box">' +
+            '<div class="clean-status-badge ' + badgeClass + '">' + statusText + '</div>' +
+            '<div class="clean-date-sub">上次清潔日期：' + item.lastCleaned + '</div>' +
+          '</div>' +
+          '<button class="btn-clean-done" onclick="completeCleaningItem(' + item.id + ')">完成</button>';
+
+        container.appendChild(card);
+      });
     }
 
     window.onload = init;
