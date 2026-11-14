@@ -200,11 +200,6 @@
             <h3>貓咪影音牆</h3>
             <p>記錄貓咪的日常照片與可愛影片</p>
           </div>
-          <div class="hub-card" onclick="showPage('aiTestPage')">
-            <div class="card-icon">🤖</div>
-            <h3>AI 回應測試沙盒</h3>
-            <p>即時測試輸入文字時 AI 後端實際回傳的原始回應內容</p>
-          </div>
         </div>
       </div>
 
@@ -402,23 +397,6 @@
           <button onclick="addCleaningItem()" id="addCleanBtn">✨ 新增物品</button>
         </div>
         <div class="clean-grid" id="cleanGridContainer"></div>
-      </div>
-
-      <!-- 🤖 AI 測試頁面 -->
-      <div id="aiTestPage" class="page-view">
-        <div class="page-header">
-          <h2>🤖 AI 後端回應測試沙盒</h2>
-          <button class="btn-back" onclick="showPage('homePage')">← 返回主頁</button>
-        </div>
-        <div class="menu-layout">
-          <div class="task-input-group">
-            <input type="text" id="aiTestInput" placeholder="輸入要測試的文字（例如：紅燒牛肉）" style="flex: 2;">
-            <button onclick="runAiTest()" id="aiTestBtn">🚀 測試 AI 回應</button>
-          </div>
-          <div style="background: #1e293b; color: #38bdf8; padding: 20px; border-radius: 12px; font-family: monospace; min-height: 150px; white-space: pre-wrap; word-break: break-all;" id="aiTestOutput">
-            等待輸入並點擊測試...
-          </div>
-        </div>
       </div>
 
     </div>
@@ -1112,7 +1090,6 @@
       document.getElementById('deliveryPage').classList.toggle('active', pageId === 'deliveryPage');
       document.getElementById('catPage').classList.toggle('active', pageId === 'catPage');
       document.getElementById('cleaningPage').classList.toggle('active', pageId === 'cleaningPage');
-      document.getElementById('aiTestPage').classList.toggle('active', pageId === 'aiTestPage');
       
       if (pageId === 'taskPage') {
         selectCalendarDate(todayStr);
@@ -1568,44 +1545,6 @@
 
         container.appendChild(card);
       });
-    }
-
-    // 🤖 AI 測試沙盒邏輯
-    async function runAiTest() {
-      const inputEl = document.getElementById('aiTestInput');
-      const outputEl = document.getElementById('aiTestOutput');
-      const btnEl = document.getElementById('aiTestBtn');
-      
-      const query = inputEl.value.trim();
-      if (!query) return;
-
-      outputEl.innerText = '⏳ 正在向 ' + API_BASE + '/api/ai-emoji 發送請求...';
-      btnEl.disabled = true;
-
-      try {
-        const res = await fetch(API_BASE + '/api/ai-emoji', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ text: query })
-        });
-
-        const statusText = `HTTP 状态码: ${res.status} ${res.statusText}\n`;
-        const textData = await res.text();
-        
-        outputEl.innerText = statusText + '\n【原始 Response 文字】:\n' + textData;
-
-        try {
-          const jsonData = JSON.parse(textData);
-          outputEl.innerText += '\n\n【解析後的 JSON 物件】:\n' + JSON.stringify(jsonData, null, 2);
-        } catch (jsonErr) {
-          outputEl.innerText += '\n\n(提示: 此 Response 無法被解析為標準 JSON)';
-        }
-
-      } catch (err) {
-        outputEl.innerText = '❌ 請求發生網路或跨域錯誤:\n' + err.message;
-      } finally {
-        btnEl.disabled = false;
-      }
     }
 
     window.onload = init;
